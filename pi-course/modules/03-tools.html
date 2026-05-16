@@ -1,0 +1,684 @@
+<section class="module" id="module-3" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">Tools: The Model&apos;s Hands</h1>
+      <p class="module-subtitle">The model speaks. Tools are how speech becomes action.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- =========================================================
+           SCREEN 1 — The DJ behind the glass
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The DJ behind the glass</h2>
+
+        <p>Picture a radio <span class="term" data-definition="A person who plays music and talks on a radio show. Used here as a metaphor for the AI model: it talks all day, but to actually play a song it has to press a labeled button on a panel.">DJ</span> inside a soundproof booth. They can talk all day, but if they want to play a song, they press one of the labeled buttons on the panel in front of them. They cannot reach through the glass to spin a record themselves.</p>
+
+        <p>The model is the DJ. <strong>Tools</strong> are the buttons. The panel is the list of tools pi tells the model about at the start of every session.</p>
+
+        <!-- Hero visual: the booth -->
+        <div class="dj-booth animate-in" aria-hidden="true">
+          <div class="dj-side">
+            <div class="dj-brain">
+              <div class="dj-brain-icon">🧠</div>
+              <div class="dj-brain-label">MODEL</div>
+              <div class="dj-brain-speech">&ldquo;I want to read README.md&hellip;&rdquo;</div>
+            </div>
+          </div>
+          <div class="dj-glass">
+            <div class="dj-glass-label">SOUNDPROOF GLASS</div>
+            <div class="dj-glass-sub">(the model cannot reach through)</div>
+          </div>
+          <div class="dj-panel">
+            <div class="dj-panel-title">THE PANEL</div>
+            <div class="dj-buttons">
+              <div class="dj-btn"><span class="dj-btn-icon">📖</span><span>read</span></div>
+              <div class="dj-btn"><span class="dj-btn-icon">📝</span><span>write</span></div>
+              <div class="dj-btn"><span class="dj-btn-icon">✂️</span><span>edit</span></div>
+              <div class="dj-btn"><span class="dj-btn-icon">⌨️</span><span>bash</span></div>
+            </div>
+            <div class="dj-panel-foot">pi presses the button the model asks for</div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">The model is on the wrong side of the glass.</strong>
+            <p>It speaks, but it doesn&apos;t act. If you want it to do something new &mdash; call an API, deploy a service, query a database &mdash; you (or an <span class="term" data-definition="A small plug-in package that adds new tools to pi. You can write an extension that gives the model a new button to press, like slack-notify or deploy-staging.">extension</span>) must install a tool that does that. Then the model can press the button.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 2 — Anatomy of a tool (Snippet A)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Anatomy of a tool</h2>
+
+        <p>A tool is three things bundled together: a <strong>name</strong> the model uses to call it, a <strong>description</strong> the model reads to decide whether to use it, and a <strong>schema</strong> that says what arguments are allowed.</p>
+
+        <p>Here is the smallest possible complete tool in pi &mdash; a friendly &ldquo;hello&rdquo; greeter. Every other tool in the system, including the powerful ones like <code>bash</code>, has the same shape underneath.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+<pre><code><span class="code-line"><span class="code-comment">/**</span></span>
+<span class="code-line"><span class="code-comment"> * Hello Tool - Minimal custom tool example</span></span>
+<span class="code-line"><span class="code-comment"> */</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">import</span> { Type } <span class="code-keyword">from</span> <span class="code-string">&quot;@earendil-works/pi-ai&quot;</span>;</span>
+<span class="code-line"><span class="code-keyword">import</span> { defineTool, <span class="code-keyword">type</span> ExtensionAPI } <span class="code-keyword">from</span> <span class="code-string">&quot;@earendil-works/pi-coding-agent&quot;</span>;</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">const</span> helloTool = <span class="code-function">defineTool</span>({</span>
+<span class="code-line">    <span class="code-property">name</span>: <span class="code-string">&quot;hello&quot;</span>,</span>
+<span class="code-line">    <span class="code-property">label</span>: <span class="code-string">&quot;Hello&quot;</span>,</span>
+<span class="code-line">    <span class="code-property">description</span>: <span class="code-string">&quot;A simple greeting tool&quot;</span>,</span>
+<span class="code-line">    <span class="code-property">parameters</span>: Type.<span class="code-function">Object</span>({</span>
+<span class="code-line">        <span class="code-property">name</span>: Type.<span class="code-function">String</span>({ <span class="code-property">description</span>: <span class="code-string">&quot;Name to greet&quot;</span> }),</span>
+<span class="code-line">    }),</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">async</span> <span class="code-function">execute</span>(_toolCallId, params, _signal, _onUpdate, _ctx) {</span>
+<span class="code-line">        <span class="code-keyword">return</span> {</span>
+<span class="code-line">            <span class="code-property">content</span>: [{ <span class="code-property">type</span>: <span class="code-string">&quot;text&quot;</span>, <span class="code-property">text</span>: <span class="code-string">`Hello, ${params.name}!`</span> }],</span>
+<span class="code-line">            <span class="code-property">details</span>: { <span class="code-property">greeted</span>: params.name },</span>
+<span class="code-line">        };</span>
+<span class="code-line">    },</span>
+<span class="code-line">});</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export default</span> <span class="code-keyword">function</span> (pi: ExtensionAPI) {</span>
+<span class="code-line">    pi.<span class="code-function">registerTool</span>(helloTool);</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Comment block. Just a note for humans saying &ldquo;this file defines a hello tool.&rdquo;</p>
+              <p class="tl">Pull in <code>Type</code>, the helper used to describe what arguments look like.</p>
+              <p class="tl">Pull in <code>defineTool</code> (the tool-builder) and the <span class="term" data-definition="The set of helper functions an extension is allowed to call on pi &mdash; like registerTool. It is the official surface pi exposes to plug-ins.">ExtensionAPI</span> type from pi.</p>
+              <p class="tl">Build a tool. The thing inside the parens is the tool&apos;s full definition.</p>
+              <p class="tl">The model will refer to this tool by the word <code>hello</code>.</p>
+              <p class="tl">How the tool&apos;s name shows up in the pretty UI when it runs.</p>
+              <p class="tl">What the model reads to decide whether to use this tool. The model can only call tools it knows about, and it reads the description to know what each one does.</p>
+              <p class="tl">The shape of arguments this tool expects &mdash; here, one string called <code>name</code>. This is the tool&apos;s <span class="term" data-definition="A description of what valid data looks like. The bash schema says &lsquo;must have a command string&rsquo;; pi rejects any tool call whose JSON does not match the schema.">schema</span>.</p>
+              <p class="tl">The actual code that runs when the model presses this button. <code>params</code> holds the <span class="term" data-definition="The inputs to a function. add(2, 3) calls the add function with arguments 2 and 3.">arguments</span> the model sent.</p>
+              <p class="tl">What the tool sends back. <code>content</code> goes to the model so it can keep working; <code>details</code> is extra info the UI might show.</p>
+              <p class="tl">Closing the return value, closing execute, closing the tool definition.</p>
+              <p class="tl">Tell pi about this tool so it shows up on the panel and can be called.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 3 — The four built-in tools (pattern cards)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The four buttons on the panel</h2>
+
+        <p>Pi ships with four primary tools. Every coding session uses some combination of these. Other tools (<code>find</code>, <code>grep</code>, <code>ls</code>) are search-and-navigation helpers built on top.</p>
+
+        <div class="pattern-cards animate-in">
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">📖</div>
+            <h4 class="pattern-title">read</h4>
+            <p class="pattern-desc">Reads file contents from disk. Truncates giant files; refuses <span class="term" data-definition="A file that is not human-readable text &mdash; like an image, a video, or a compiled program. Opening it as text gives garbled output, so pi refuses.">binary</span> files.</p>
+            <div class="pattern-example"><span class="pattern-example-label">EXAMPLE</span><code>Read README.md</code></div>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">📝</div>
+            <h4 class="pattern-title">write</h4>
+            <p class="pattern-desc">Creates a new file or completely replaces an existing one. The whole file, every time.</p>
+            <div class="pattern-example"><span class="pattern-example-label">EXAMPLE</span><code>Write a config file</code></div>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">✂️</div>
+            <h4 class="pattern-title">edit</h4>
+            <p class="pattern-desc">Changes part of a file &mdash; a line range or a text replacement &mdash; while keeping the rest intact.</p>
+            <div class="pattern-example"><span class="pattern-example-label">EXAMPLE</span><code>Edit line 42</code></div>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">⌨️</div>
+            <h4 class="pattern-title">bash</h4>
+            <p class="pattern-desc">Runs a <span class="term" data-definition="A line of text you would type into a terminal: ls, git status, npm install. Bash, zsh, and fish are all shells that interpret these.">shell command</span>. <span class="term" data-definition="Data arriving in pieces over time, instead of all at once. Bash command output streams in line by line as it is produced.">Streams</span> output as it appears. Can be cancelled mid-run.</p>
+            <div class="pattern-example"><span class="pattern-example-label">EXAMPLE</span><code>Run npm test</code></div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">🔎</div>
+          <div class="callout-content">
+            <strong class="callout-title">Also on the panel: search helpers</strong>
+            <p><code>find</code> (locate files by name), <code>grep</code> (locate files by content), and <code>ls</code> (list a directory). The model uses these constantly to figure out what your project looks like before reading or editing.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 4 — What the model sees (Snippet B)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">What the model actually sees</h2>
+
+        <p>When pi tells the model about the <code>bash</code> tool, here is the exact shape it sends. The model has to produce <span class="term" data-definition="JavaScript Object Notation. A way to write structured data as plain text. The model and pi pass tool calls and results to each other as JSON.">JSON</span> matching this shape &mdash; anything else gets rejected.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+<pre><code><span class="code-line"><span class="code-keyword">const</span> bashSchema = Type.<span class="code-function">Object</span>({</span>
+<span class="code-line">    <span class="code-property">command</span>: Type.<span class="code-function">String</span>({ <span class="code-property">description</span>: <span class="code-string">&quot;Bash command to execute&quot;</span> }),</span>
+<span class="code-line">    <span class="code-property">timeout</span>: Type.<span class="code-function">Optional</span>(Type.<span class="code-function">Number</span>({ <span class="code-property">description</span>: <span class="code-string">&quot;Timeout in seconds (optional, no default timeout)&quot;</span> })),</span>
+<span class="code-line">});</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Describe the shape of arguments. <span class="term" data-definition="The library pi uses to write schemas. Type.Object({...}) is how pi says &lsquo;expect a JSON object shaped like this.&rsquo;">Type.Object</span> means &ldquo;expect a JSON object with these fields.&rdquo;</p>
+              <p class="tl">Field one: a string called <code>command</code>. Required. This is the shell command the model wants pi to run.</p>
+              <p class="tl">Field two: an optional number called <code>timeout</code>. If the model thinks the command might hang, it can set a cap in seconds.</p>
+              <p class="tl">End of schema. From here on, the model knows: &ldquo;to press the bash button, send a JSON object with command (and maybe timeout).&rdquo;</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- What the model emits, side-by-side with what pi does -->
+        <div class="side-by-side animate-in">
+          <div class="sbs-col">
+            <div class="sbs-label">WHAT THE MODEL EMITS</div>
+<pre class="sbs-code"><code><span class="code-line">{</span>
+<span class="code-line">  <span class="code-property">&quot;tool&quot;</span>: <span class="code-string">&quot;bash&quot;</span>,</span>
+<span class="code-line">  <span class="code-property">&quot;args&quot;</span>: {</span>
+<span class="code-line">    <span class="code-property">&quot;command&quot;</span>: <span class="code-string">&quot;npm test&quot;</span></span>
+<span class="code-line">  }</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="sbs-arrow">→</div>
+          <div class="sbs-col">
+            <div class="sbs-label">WHAT PI DOES</div>
+            <ol class="sbs-steps">
+              <li>Check the JSON against <code>bashSchema</code>.</li>
+              <li>If valid, run the bash tool with <code>command = &quot;npm test&quot;</code>.</li>
+              <li>Capture stdout/stderr; stream lines back.</li>
+              <li>Hand the final result to the model as a tool result.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Spot the bug -->
+        <div class="bug-challenge animate-in">
+          <h3>Spot the bug: what makes this tool call invalid?</h3>
+          <div class="bug-code">
+            <div class="bug-line" data-line="1" onclick="checkBugLine(this, false)">
+              <span class="line-num">1</span>
+              <code>{</code>
+            </div>
+            <div class="bug-line" data-line="2" onclick="checkBugLine(this, false)">
+              <span class="line-num">2</span>
+              <code>  "tool": "bash",</code>
+            </div>
+            <div class="bug-line bug-target" data-line="3" onclick="checkBugLine(this, true)">
+              <span class="line-num">3</span>
+              <code>  "args": { "cmd": "npm test", "timeout": 30 }</code>
+            </div>
+            <div class="bug-line" data-line="4" onclick="checkBugLine(this, false)">
+              <span class="line-num">4</span>
+              <code>}</code>
+            </div>
+          </div>
+          <div class="bug-feedback" id="bug-feedback"></div>
+        </div>
+        <script>
+          // Per-question feedback override (main.js exposes checkBugLine globally)
+          (function () {
+            const orig = window.checkBugLine;
+            window.checkBugLine = function (el, isCorrect) {
+              const challenge = el.closest('.bug-challenge');
+              const feedback = challenge.querySelector('.bug-feedback');
+              if (isCorrect) {
+                el.classList.add('correct');
+                feedback.innerHTML = '<strong>Found it.</strong> The field is named <code>cmd</code>, but the schema requires <code>command</code>. Pi rejects this call before any shell runs and sends an error back to the model. The model reads the error and tries again with the correct field name.';
+                feedback.className = 'bug-feedback show success';
+              } else {
+                el.classList.add('incorrect');
+                feedback.innerHTML = 'Not this line &mdash; look at the field names inside <code>args</code> and compare them to the bash schema above.';
+                feedback.className = 'bug-feedback show error';
+                setTimeout(function () { el.classList.remove('incorrect'); feedback.className = 'bug-feedback'; }, 2200);
+              }
+            };
+          })();
+        </script>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 5 — The tool wrapper pattern (Snippet C)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The wrapper: a tiny adapter</h2>
+
+        <p>Tools are written one way (rich, with full context like &ldquo;what session am I in?&rdquo;), but agent-core wants a simpler shape. The <code>wrapToolDefinition</code> function is the <span class="term" data-definition="A small piece of code that converts one shape into another so two components can work together. Like an HDMI-to-USB-C dongle: the signal does not change, just the connector.">adapter</span> between the two &mdash; like an HDMI-to-USB-C dongle.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+<pre><code><span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">wrapToolDefinition</span>&lt;TDetails&gt;(</span>
+<span class="code-line">    definition: ToolDefinition&lt;<span class="code-keyword">any</span>, TDetails&gt;,</span>
+<span class="code-line">    ctxFactory?: () =&gt; ExtensionContext,</span>
+<span class="code-line">): AgentTool&lt;<span class="code-keyword">any</span>, TDetails&gt; {</span>
+<span class="code-line">    <span class="code-keyword">return</span> {</span>
+<span class="code-line">        <span class="code-property">name</span>: definition.name,</span>
+<span class="code-line">        <span class="code-property">execute</span>: (toolCallId, params, signal, onUpdate) =&gt;</span>
+<span class="code-line">            definition.<span class="code-function">execute</span>(toolCallId, params, signal, onUpdate, ctxFactory?.() <span class="code-keyword">as</span> ExtensionContext),</span>
+<span class="code-line">    };</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Define a <span class="term" data-definition="A named chunk of code that takes some inputs and produces an output. A tool is a function the model can call.">function</span> called <code>wrapToolDefinition</code>. It is the dongle.</p>
+              <p class="tl">It takes a tool <code>definition</code> &mdash; the fancy shape with five execute arguments.</p>
+              <p class="tl">It also takes an optional <code>ctxFactory</code> &mdash; a way to look up the current extension context when the tool actually runs.</p>
+              <p class="tl">It returns an <code>AgentTool</code> &mdash; the simpler shape agent-core wants.</p>
+              <p class="tl">Build the simpler shape&hellip;</p>
+              <p class="tl">&hellip;keeping the original name so the model still recognises it&hellip;</p>
+              <p class="tl">&hellip;and providing an <code>execute</code> that takes only four arguments.</p>
+              <p class="tl">When agent-core calls execute, the wrapper calls the real execute and quietly injects the fifth argument (the context) by asking <code>ctxFactory</code>.</p>
+              <p class="tl">Close the returned object.</p>
+              <p class="tl">End of function.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in">
+          <div class="callout-icon">🧩</div>
+          <div class="callout-content">
+            <strong class="callout-title">Why this matters for extensions</strong>
+            <p>Module 6 covers extensions, which add new buttons to the panel. The wrapper is the reason an extension tool can know &ldquo;which session am I in?&rdquo; without every tool author having to wire that up by hand.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 6 — Data flow animation
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">One tool call, step by step</h2>
+
+        <p>Watch a single bash tool round-trip. The model emits JSON; pi runs the code; the result comes back. Every shell command, every file read, every edit follows this exact path.</p>
+
+        <div class="flow-animation animate-in" data-steps='[
+          {"highlight":"flow-actor-1","label":"Model writes a tool call as JSON"},
+          {"highlight":"flow-actor-2","label":"Pi receives the call and checks it against the schema","packet":true,"from":"actor-1","to":"actor-2"},
+          {"highlight":"flow-actor-3","label":"Pi runs the bash tool with the supplied args","packet":true,"from":"actor-2","to":"actor-3"},
+          {"highlight":"flow-actor-4","label":"Bash tool launches a real shell process","packet":true,"from":"actor-3","to":"actor-4"},
+          {"highlight":"flow-actor-3","label":"Shell finishes; output comes back","packet":true,"from":"actor-4","to":"actor-3"},
+          {"highlight":"flow-actor-2","label":"Pi packages the output as a tool result","packet":true,"from":"actor-3","to":"actor-2"},
+          {"highlight":"flow-actor-1","label":"The model reads the result and decides the next move","packet":true,"from":"actor-2","to":"actor-1"}
+        ]'>
+          <div class="flow-actors">
+            <div class="flow-actor" id="flow-actor-1">
+              <div class="flow-actor-icon">🧠</div>
+              <span>Model</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-2">
+              <div class="flow-actor-icon">⚙️</div>
+              <span>Pi</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-3">
+              <div class="flow-actor-icon">⌨️</div>
+              <span>Tool: bash</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-4">
+              <div class="flow-actor-icon">💻</div>
+              <span>The OS</span>
+            </div>
+          </div>
+
+          <div class="flow-packet" id="flow-packet"></div>
+
+          <div class="flow-step-label" id="flow-label">Click &ldquo;Next Step&rdquo; to begin</div>
+
+          <div class="flow-controls">
+            <button class="btn flow-next-btn">Next Step</button>
+            <button class="btn flow-reset-btn">Restart</button>
+            <span class="flow-progress"></span>
+          </div>
+        </div>
+
+        <div class="callout callout-warning animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">⏱️</div>
+          <div class="callout-content">
+            <strong class="callout-title">Each round-trip is a new API call.</strong>
+            <p>Ten tools used means ten round-trips through the model. That is why a task with lots of small file edits can feel slower than a task that does one big thing.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 7 — Quiz
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your understanding</h2>
+        <p>Four scenarios. None of them is a memory test &mdash; each is something a vibe coder actually hits.</p>
+
+        <div class="quiz-container" id="quiz-module3">
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly. There is no delete-server tool on the panel. The model could try a bash command, but if the credentials are not set up or the command looks unsafe, it will refuse. The model cannot just do anything outside its tools &mdash; that is the whole point of the glass."
+               data-explanation-wrong="Not quite &mdash; the model is not being lazy or rate-limited. Think about what the model is physically able to do. What buttons are on the panel?">
+            <h3 class="quiz-question">1. You ask pi to &ldquo;delete my server.&rdquo; Nothing happens; pi just says it can&apos;t do that. Why?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model is being lazy. Asking more forcefully would work.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>There is no <code>delete-server</code> tool on the panel. The model can only press buttons that exist.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The API rate-limited the request after one try.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model deleted the server but forgot to tell you.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right. If you scroll the message log and there is no read tool call before the model quoted the file, the contents are a guess from training data &mdash; a hallucination. Fix it by explicitly telling pi to read the file first."
+               data-explanation-wrong="Not quite. The file on disk is the source of truth, and pi&apos;s read tool would have shown the real contents. The issue is whether the model actually pressed that button.">
+            <h3 class="quiz-question">2. Pi confidently tells you the contents of <code>package.json</code>, but the contents it cites don&apos;t match what&apos;s on disk. What likely happened?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The disk is wrong; pi is showing the &ldquo;real&rdquo; version from a cache.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The read tool returned outdated data.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model skipped the <code>read</code> tool and <span class="term" data-definition="When an AI makes up information that sounds plausible but is not real. If the model does not call the read tool, anything it says about your file is hallucination.">hallucinated</span> the contents from training data.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Pi&apos;s schema validator rejected the read call.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes. An extension registers a new tool (say, slack-notify) with pi. Once the tool is on the panel, you can prompt the model: &lsquo;when you finish, call slack-notify.&rsquo; The model can now press that button just like read or bash."
+               data-explanation-wrong="Not quite. The model cannot send a Slack message on its own &mdash; it needs a button for it. Anything in the real world that pi does has to flow through a tool.">
+            <h3 class="quiz-question">3. You want pi to post a Slack message at the end of every long task. How would you set that up?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Write an extension that registers a new <code>slack-notify</code> tool, then prompt: &ldquo;when you&apos;re done, call slack-notify.&rdquo;</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Just ask the model nicely. It has Slack access built in.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Edit the model&apos;s training data to include Slack&apos;s API.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Put your Slack token in the system prompt and hope.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Right. Tool execution time is not the AI thinking &mdash; it is pi running real code on real hardware. Reading a big file from disk takes the time it takes. The model only gets involved again once the read finishes."
+               data-explanation-wrong="Not quite. The model is fast; what is slow here is the work happening inside the tool itself. The model is not even on the clock during those 30 seconds.">
+            <h3 class="quiz-question">4. Pi sat there for 30 seconds, then printed the contents of a file. What was happening during those 30 seconds?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model was &ldquo;thinking really hard.&rdquo;</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Pi was inside the <code>read</code> tool, actually reading the file from disk. Big files take real time.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model was retrying because the schema check failed three times.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Pi was waiting for you to press a confirm button you couldn&apos;t see.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')">Try Again</button>
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-10)">
+          <div class="callout-icon">➡️</div>
+          <div class="callout-content">
+            <strong class="callout-title">Coming up: memory as a tree</strong>
+            <p>Every tool call and every model message gets written down. The shape of that record is more interesting than you would expect &mdash; it is a tree, not a list. Module 4 next.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Module-local styles for visuals used only in module 3 -->
+  <style>
+    /* DJ booth hero */
+    #module-3 .dj-booth {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: var(--space-4);
+      align-items: stretch;
+      margin: var(--space-8) 0;
+      padding: var(--space-6);
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+    }
+    #module-3 .dj-side {
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--color-bg-code), #2A2A40);
+      border-radius: var(--radius-sm);
+      padding: var(--space-6);
+      color: #CDD6F4;
+    }
+    #module-3 .dj-brain { text-align: center; }
+    #module-3 .dj-brain-icon { font-size: 3rem; margin-bottom: var(--space-2); }
+    #module-3 .dj-brain-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+      margin-bottom: var(--space-3);
+    }
+    #module-3 .dj-brain-speech {
+      font-style: italic;
+      font-size: var(--text-sm);
+      background: rgba(255,255,255,0.05);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+    }
+    #module-3 .dj-glass {
+      width: 14px;
+      background: repeating-linear-gradient(
+        135deg,
+        rgba(42, 123, 155, 0.18) 0 6px,
+        rgba(42, 123, 155, 0.08) 6px 12px
+      );
+      border-left: 2px solid var(--color-info);
+      border-right: 2px solid var(--color-info);
+      position: relative;
+    }
+    #module-3 .dj-glass-label,
+    #module-3 .dj-glass-sub {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%) rotate(-90deg);
+      transform-origin: center;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+      letter-spacing: 0.1em;
+      color: var(--color-info);
+    }
+    #module-3 .dj-glass-label { top: 30%; font-size: var(--text-xs); font-weight: 700; }
+    #module-3 .dj-glass-sub   { top: 70%; font-size: 10px; opacity: 0.7; }
+    #module-3 .dj-panel {
+      background: var(--color-surface-warm);
+      border-radius: var(--radius-sm);
+      padding: var(--space-5);
+      display: flex; flex-direction: column;
+    }
+    #module-3 .dj-panel-title {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-4);
+      text-align: center;
+    }
+    #module-3 .dj-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      flex: 1;
+    }
+    #module-3 .dj-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: var(--space-1);
+      padding: var(--space-4) var(--space-2);
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text);
+      box-shadow: 0 2px 0 var(--color-border);
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+    }
+    #module-3 .dj-btn:hover {
+      transform: translateY(1px);
+      box-shadow: 0 1px 0 var(--color-border);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+    #module-3 .dj-btn-icon { font-size: 1.5rem; }
+    #module-3 .dj-panel-foot {
+      margin-top: var(--space-4);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Pattern card example chip */
+    #module-3 .pattern-example {
+      margin-top: var(--space-4);
+      padding-top: var(--space-3);
+      border-top: 1px dashed var(--color-border);
+      display: flex; flex-direction: column; gap: var(--space-1);
+    }
+    #module-3 .pattern-example-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+    }
+    #module-3 .pattern-example code {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--color-accent);
+    }
+
+    /* Side-by-side: what model emits vs what pi does */
+    #module-3 .side-by-side {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: var(--space-5);
+      align-items: center;
+      margin: var(--space-8) 0;
+    }
+    #module-3 .sbs-col {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-sm);
+    }
+    #module-3 .sbs-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+    #module-3 .sbs-code {
+      background: var(--color-bg-code);
+      color: #CDD6F4;
+      padding: var(--space-4);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      line-height: 1.7;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    #module-3 .sbs-arrow {
+      font-size: 2rem;
+      color: var(--color-accent);
+      font-weight: 700;
+    }
+    #module-3 .sbs-steps {
+      margin: 0; padding-left: var(--space-5);
+      font-size: var(--text-sm);
+      line-height: 1.7;
+      color: var(--color-text);
+    }
+    #module-3 .sbs-steps li { margin-bottom: var(--space-2); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #module-3 .dj-booth { grid-template-columns: 1fr; }
+      #module-3 .dj-glass {
+        width: 100%; height: 14px;
+        border-left: none; border-right: none;
+        border-top: 2px solid var(--color-info);
+        border-bottom: 2px solid var(--color-info);
+      }
+      #module-3 .dj-glass-label,
+      #module-3 .dj-glass-sub {
+        transform: translateX(-50%);
+      }
+      #module-3 .dj-glass-label { top: 50%; }
+      #module-3 .dj-glass-sub   { display: none; }
+      #module-3 .side-by-side { grid-template-columns: 1fr; }
+      #module-3 .sbs-arrow { transform: rotate(90deg); justify-self: center; }
+    }
+  </style>
+</section>
