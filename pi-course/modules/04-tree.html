@@ -1,0 +1,453 @@
+<section class="module" id="module-4" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">Memory as a Tree</h1>
+      <p class="module-subtitle">Every conversation is a choose-your-own-adventure book &mdash; with all the branches still bound inside.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- =========================================================
+           SCREEN 1 — The conversation is on disk
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The book is on the shelf</h2>
+
+        <p>Close your terminal. Walk away. Come back tomorrow. Type <code>pi -c</code>. Every message is exactly where you left it &mdash; because the conversation was never really &ldquo;in&rdquo; the terminal. It was <span class="term" data-definition="Saved to the computers permanent storage (the hard drive or SSD). Survives shutdowns. The opposite of in memory which is lost when the program ends.">on disk</span> the whole time.</p>
+
+        <p>Pi writes one <span class="term" data-definition="JSON Lines. A file format where each line is one JSON object. Easy to append to (just add a new line) and easy to read one record at a time.">JSONL</span> file per session. Every user message, every model reply, every tool call gets <span class="term" data-definition="Added to the end of a file without changing what is already in it. Pi never edits old session entries; it only appends new ones.">appended</span> as a single line. The file is the book. Your conversation is what is written in it.</p>
+
+        <!-- Hero visual: the file path -->
+        <div class="path-display animate-in" aria-hidden="true">
+          <div class="path-display-label">WHERE PI STORES YOUR SESSION</div>
+          <div class="path-display-bar">
+            <span class="path-seg path-seg-home">~/.pi/agent/sessions/</span><span class="path-seg path-seg-project">-home-user-myproject/</span><span class="path-seg path-seg-file">2025-05-16_e3a1b8c9.jsonl</span>
+          </div>
+          <div class="path-display-legend">
+            <div class="path-legend-item">
+              <span class="path-legend-dot" style="background: var(--color-actor-2)"></span>
+              <span><strong>pi&rsquo;s home</strong> &mdash; where every session for every project lives</span>
+            </div>
+            <div class="path-legend-item">
+              <span class="path-legend-dot" style="background: var(--color-actor-4)"></span>
+              <span><strong>folder you ran pi in</strong> &mdash; the slashes get flattened to dashes</span>
+            </div>
+            <div class="path-legend-item">
+              <span class="path-legend-dot" style="background: var(--color-accent)"></span>
+              <span><strong>date + <span class="term" data-definition="Universally Unique Identifier. A long random string used as a label, guaranteed to be unique. Session files use one in their name.">uuid</span></strong> &mdash; one file per session, never reused</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">📚</div>
+          <div class="callout-content">
+            <strong class="callout-title">Pi sessions are not chat logs.</strong>
+            <p>They look like chat logs &mdash; but underneath, they are <span class="term" data-definition="A way of organizing data where each item has one parent and can have many children. Folders on your computer are a tree. Family trees are trees. Pi sessions are trees.">trees</span>. That single fact is what makes <code>/tree</code>, <code>/fork</code>, and undo possible. The rest of this module unpacks how.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 2 — The shape of one entry (Snippet A)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The shape of one entry</h2>
+
+        <p>Every line in the file describes one moment in the conversation. They all share the same four fields, plus a <code>message</code> field when the entry is something somebody said.</p>
+
+        <p>Here is the shape, taken from pi&rsquo;s session manager. <code>SessionEntryBase</code> is the common spine; <code>SessionMessageEntry</code> is the most common flavor.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+<pre><code><span class="code-line"><span class="code-keyword">export interface</span> SessionEntryBase {</span>
+<span class="code-line">    <span class="code-property">type</span>: <span class="code-keyword">string</span>;</span>
+<span class="code-line">    <span class="code-property">id</span>: <span class="code-keyword">string</span>;</span>
+<span class="code-line">    <span class="code-property">parentId</span>: <span class="code-keyword">string</span> | <span class="code-keyword">null</span>;</span>
+<span class="code-line">    <span class="code-property">timestamp</span>: <span class="code-keyword">string</span>;</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export interface</span> SessionMessageEntry <span class="code-keyword">extends</span> SessionEntryBase {</span>
+<span class="code-line">    <span class="code-property">type</span>: <span class="code-string">&quot;message&quot;</span>;</span>
+<span class="code-line">    <span class="code-property">message</span>: AgentMessage;</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Every entry in the file has at least these four fields&hellip;</p>
+              <p class="tl"><strong>type</strong> &mdash; what kind of entry this is. <code>&quot;message&quot;</code> is the most common; others include <code>&quot;compaction&quot;</code> and <code>&quot;branch_summary&quot;</code>.</p>
+              <p class="tl"><strong>id</strong> &mdash; a short unique label for this entry, so other entries can point back to it.</p>
+              <p class="tl"><strong>parentId</strong> &mdash; the id of the entry that came right before this one in the chain. If <code>null</code>, this is the first entry in the session.</p>
+              <p class="tl"><strong><span class="term" data-definition="A label saying when something happened, usually in ISO format like 2025-05-16T14:00:01Z.">timestamp</span></strong> &mdash; when this entry was written.</p>
+              <p class="tl">End of the common shape.</p>
+              <p class="tl">A more specific kind of entry: one that contains an actual conversation message&hellip;</p>
+              <p class="tl">&hellip;its <code>type</code> is literally the word <code>&quot;message&quot;</code>.</p>
+              <p class="tl">&hellip;and it carries a <code>message</code> field with the actual user / assistant / tool content.</p>
+              <p class="tl">End of definition.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">🔗</div>
+          <div class="callout-content">
+            <strong class="callout-title">parentId is the whole trick.</strong>
+            <p>Each entry points to the one before it. Walk the parent pointers backward and you reconstruct the conversation. Because <em>any</em> entry can claim <em>any</em> earlier entry as its parent, two entries can share a parent &mdash; and that is how a straight line turns into a tree.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 3 — Three real lines + Layer toggle
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Same story, three views</h2>
+
+        <p>Here are three real lines from a session file: the header, a user message, and the model&rsquo;s reply. Same conversation, three ways to look at it &mdash; flip the tabs below.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE &mdash; THREE JSONL LINES</span>
+<pre><code><span class="code-line">{<span class="code-property">&quot;type&quot;</span>:<span class="code-string">&quot;session&quot;</span>,<span class="code-property">&quot;version&quot;</span>:<span class="code-number">3</span>,<span class="code-property">&quot;id&quot;</span>:<span class="code-string">&quot;e3a1...&quot;</span>,<span class="code-property">&quot;timestamp&quot;</span>:<span class="code-string">&quot;2025-05-16T14:00:00Z&quot;</span>,<span class="code-property">&quot;cwd&quot;</span>:<span class="code-string">&quot;/home/me/proj&quot;</span>}</span>
+<span class="code-line">{<span class="code-property">&quot;type&quot;</span>:<span class="code-string">&quot;message&quot;</span>,<span class="code-property">&quot;id&quot;</span>:<span class="code-string">&quot;msg-1&quot;</span>,<span class="code-property">&quot;parentId&quot;</span>:<span class="code-keyword">null</span>,<span class="code-property">&quot;timestamp&quot;</span>:<span class="code-string">&quot;2025-05-16T14:00:01Z&quot;</span>,<span class="code-property">&quot;message&quot;</span>:{<span class="code-property">&quot;role&quot;</span>:<span class="code-string">&quot;user&quot;</span>,<span class="code-property">&quot;content&quot;</span>:<span class="code-string">&quot;list .ts files in src&quot;</span>,<span class="code-property">&quot;timestamp&quot;</span>:<span class="code-number">1747400401000</span>}}</span>
+<span class="code-line">{<span class="code-property">&quot;type&quot;</span>:<span class="code-string">&quot;message&quot;</span>,<span class="code-property">&quot;id&quot;</span>:<span class="code-string">&quot;msg-2&quot;</span>,<span class="code-property">&quot;parentId&quot;</span>:<span class="code-string">&quot;msg-1&quot;</span>,<span class="code-property">&quot;timestamp&quot;</span>:<span class="code-string">&quot;2025-05-16T14:00:03Z&quot;</span>,<span class="code-property">&quot;message&quot;</span>:{<span class="code-property">&quot;role&quot;</span>:<span class="code-string">&quot;assistant&quot;</span>,<span class="code-property">&quot;content&quot;</span>:[{<span class="code-property">&quot;type&quot;</span>:<span class="code-string">&quot;text&quot;</span>,<span class="code-property">&quot;text&quot;</span>:<span class="code-string">&quot;There are three: foo.ts, bar.ts, baz.ts.&quot;</span>}],<span class="code-property">&quot;model&quot;</span>:<span class="code-string">&quot;claude-sonnet-4-5&quot;</span>,<span class="code-property">&quot;stopReason&quot;</span>:<span class="code-string">&quot;stop&quot;</span>}}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><strong>Line 1 &mdash; the header.</strong> Tells pi this is a v3 session, gives it an id, records when it started, and notes which folder you were in.</p>
+              <p class="tl"><strong>Line 2 &mdash; the first user message.</strong> Its <code>parentId</code> is <code>null</code> because nothing comes before it &mdash; this is the <span class="term" data-definition="The topmost node of a tree. In pi sessions, the first user message is the root.">root</span>. The user said: &ldquo;list .ts files in src.&rdquo;</p>
+              <p class="tl"><strong>Line 3 &mdash; the model&rsquo;s reply.</strong> Its <code>parentId</code> is <code>&quot;msg-1&quot;</code>, linking it to the user&rsquo;s question. The reply text lives in <code>content</code>. Pi also records which model produced this and the <span class="term" data-definition="Why the model stopped writing. Common values: stop (it was done), length (it ran out of token budget), toolUse (it wants to call a tool next).">stopReason</span>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer Toggle: same conversation, three views -->
+        <div class="layer-demo animate-in" style="margin-top: var(--space-8)">
+          <div class="layer-tabs">
+            <button class="layer-tab active" onclick="showLayer('layer-linear', this)">Linear view (what you see)</button>
+            <button class="layer-tab" onclick="showLayer('layer-jsonl', this)">JSONL view (what&rsquo;s on disk)</button>
+            <button class="layer-tab" onclick="showLayer('layer-tree', this)">Tree view (when you branch)</button>
+          </div>
+          <div class="layer-viewport">
+
+            <!-- LAYER 1: linear / chat -->
+            <div class="layer" id="layer-linear" style="display:block">
+              <div class="chat-mini">
+                <div class="chat-mini-row chat-mini-user">
+                  <div class="chat-mini-avatar" style="background: var(--color-actor-2)">U</div>
+                  <div class="chat-mini-bubble">list .ts files in src</div>
+                </div>
+                <div class="chat-mini-row chat-mini-assistant">
+                  <div class="chat-mini-avatar" style="background: var(--color-accent)">A</div>
+                  <div class="chat-mini-bubble">There are three: foo.ts, bar.ts, baz.ts.</div>
+                </div>
+              </div>
+              <p class="layer-description">This is what shows up in your terminal. Clean, in order, no metadata. Easy to read &mdash; but you can&rsquo;t see the structure underneath.</p>
+            </div>
+
+            <!-- LAYER 2: JSONL -->
+            <div class="layer" id="layer-jsonl" style="display:none">
+              <div class="jsonl-mini">
+                <div class="jsonl-row">
+                  <span class="jsonl-tag jsonl-tag-header">header</span>
+                  <code>{type:&quot;session&quot;, id:&quot;e3a1...&quot;, cwd:&quot;/home/me/proj&quot;}</code>
+                </div>
+                <div class="jsonl-row">
+                  <span class="jsonl-tag jsonl-tag-user">user</span>
+                  <code>{id:&quot;msg-1&quot;, parentId:<strong>null</strong>, content:&quot;list .ts files in src&quot;}</code>
+                </div>
+                <div class="jsonl-row">
+                  <span class="jsonl-tag jsonl-tag-assistant">assistant</span>
+                  <code>{id:&quot;msg-2&quot;, parentId:<strong>&quot;msg-1&quot;</strong>, content:&quot;There are three...&quot;}</code>
+                </div>
+              </div>
+              <p class="layer-description">The same exchange as raw lines on disk. Notice the <code>parentId</code> chain: <code>null</code> &rarr; <code>msg-1</code> &rarr; <code>msg-2</code>. That is the spine of the conversation.</p>
+            </div>
+
+            <!-- LAYER 3: tree -->
+            <div class="layer" id="layer-tree" style="display:none">
+              <div class="tree-mini">
+                <div class="tree-node tree-node-root">
+                  <div class="tree-node-label">msg-1</div>
+                  <div class="tree-node-sub">user: &ldquo;list .ts files&hellip;&rdquo;</div>
+                </div>
+                <div class="tree-edge">&darr;</div>
+                <div class="tree-node">
+                  <div class="tree-node-label">msg-2</div>
+                  <div class="tree-node-sub">assistant: &ldquo;three: foo, bar, baz&rdquo;</div>
+                </div>
+                <div class="tree-split">
+                  <div class="tree-split-line"></div>
+                  <div class="tree-split-label">you rewind &amp; ask a different question</div>
+                </div>
+                <div class="tree-branches">
+                  <div class="tree-branch">
+                    <div class="tree-node tree-node-current">
+                      <div class="tree-node-label">msg-3</div>
+                      <div class="tree-node-sub">user: &ldquo;now show me the .js files&rdquo;</div>
+                      <div class="tree-node-flag">&larr; current leaf</div>
+                    </div>
+                  </div>
+                  <div class="tree-branch tree-branch-alt">
+                    <div class="tree-node tree-node-faded">
+                      <div class="tree-node-label">msg-3b</div>
+                      <div class="tree-node-sub">user: &ldquo;delete all the .ts files&rdquo;</div>
+                      <div class="tree-node-flag tree-node-flag-alt">alternate branch (still on disk)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="layer-description">When you rewind and ask something different, the old answer doesn&rsquo;t get deleted &mdash; it just becomes a sibling. Two children, one parent. Welcome to the tree.</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 4 — From list to tree (Snippet C) + walking to root
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">From a line to a tree</h2>
+
+        <p>A <span class="term" data-definition="A simple data structure where each item points to the next one. A tree is a linked list where items can point to multiple next ones.">linked list</span> says &ldquo;each item points to one next item.&rdquo; A tree says &ldquo;each item can have many next items, but only one previous.&rdquo; That tiny change is the entire feature.</p>
+
+        <p>Here is what a session file looks like once you&rsquo;ve rewound and tried something different. Same file, two paths.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE &mdash; THE BRANCH DIAGRAM</span>
+<pre><code><span class="code-line">[user] ── [assistant] ── [user] ── [assistant] ─┬─ [user] ← current leaf</span>
+<span class="code-line">                                                 │</span>
+<span class="code-line">                                                 └─ [branch_summary] ── [user] ← alternate branch</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">The main path: four entries in a row &mdash; user, model, user, model &mdash; then a fork where two different next-messages share the same parent.</p>
+              <p class="tl">The vertical line is just ASCII for &ldquo;both of these point up to the same entry.&rdquo;</p>
+              <p class="tl">The other branch starts with a <code>branch_summary</code> &mdash; a tiny note pi writes when you jump back, recording where the detour begins. Then the alternate user message. Both <span class="term" data-definition="A node in a tree with no children. The current leaf of a session is the most recent entry on the active branch.">leaves</span> live in the same file forever.</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="screen-heading" style="margin-top: var(--space-12); font-size: var(--text-xl)">Walking the tree to build context</h3>
+
+        <p>When pi calls the model, it does <em>not</em> send the whole file. It walks from the current leaf back to the root, collecting ancestors in order. <strong>That ordered list is the conversation the model sees</strong> &mdash; nothing else.</p>
+
+        <div class="flow-steps animate-in" style="margin-top: var(--space-6)">
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <p>Find the <strong>current leaf</strong> (the entry you&rsquo;re standing on).</p>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <p>Follow <code>parentId</code> upward, one hop at a time.</p>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="flow-step-num">3</div>
+            <p>Stop when <code>parentId</code> is <code>null</code> &mdash; that&rsquo;s the root.</p>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="flow-step-num">4</div>
+            <p>Reverse the list. Hand it to the model as &ldquo;the conversation.&rdquo;</p>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">A tree is just a linked list where each node can have multiple children.</strong>
+            <p>That single change &mdash; letting one parent have many kids &mdash; gives you <span class="term" data-definition="A path through a tree. When two children share a parent, each one starts a new branch.">branching</span>, versioning, and undo for free. Git uses the same idea to track code. Your browser&rsquo;s back button uses it to track pages. Pi uses it to track conversations.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 5 — Branching in practice: /tree /fork /clone
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Three ways to branch</h2>
+
+        <p>Pi exposes the tree through three commands. Pick the one that matches what you&rsquo;re trying to do.</p>
+
+        <div class="pattern-cards animate-in" style="margin-top: var(--space-6)">
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+            <div class="pattern-icon" style="background: var(--color-accent)">🌳</div>
+            <h4 class="pattern-title">/tree</h4>
+            <p class="pattern-desc">Navigate the tree in place. Jump to any earlier entry and continue from there. The original branch isn&rsquo;t deleted &mdash; it&rsquo;s set aside.</p>
+            <div class="pattern-when">
+              <span class="pattern-when-label">USE WHEN</span>
+              <p>You went down a wrong path and want to undo the last few turns without losing earlier work.</p>
+            </div>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">🔱</div>
+            <h4 class="pattern-title">/fork</h4>
+            <p class="pattern-desc">Copy the path from the start up to a chosen point into a brand-new session file. Two files, two futures.</p>
+            <div class="pattern-when">
+              <span class="pattern-when-label">USE WHEN</span>
+              <p>You want to share a session, or try something destructive without touching the original.</p>
+            </div>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">📑</div>
+            <h4 class="pattern-title">/clone</h4>
+            <p class="pattern-desc">Duplicate the current active branch as a new session. Like &ldquo;Save As&rdquo; for a conversation.</p>
+            <div class="pattern-when">
+              <span class="pattern-when-label">USE WHEN</span>
+              <p>You want to experiment from here without polluting the conversation you&rsquo;re in.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="callout callout-info animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">📖</div>
+          <div class="callout-content">
+            <strong class="callout-title">The choose-your-own-adventure book.</strong>
+            <p>You read page 1, take the door to page 4, then page 7. The other door is still in the book &mdash; pages 5, 8, 13 are right there. You just didn&rsquo;t turn to them. <code>/tree</code> is flipping back and choosing the other door. <code>/fork</code> is photocopying the book up to a chosen page so a friend can finish it differently. <code>/clone</code> is photocopying the whole book as it stands.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 6 — Quiz
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your tree-walking</h2>
+
+        <p>Four real situations. Pick the move that best fits what you learned. There&rsquo;s no score &mdash; just think it through.</p>
+
+        <div class="quiz-container animate-in" id="quiz-module4">
+
+          <div class="quiz-question-block"
+               data-correct="tree"
+               data-explanation-right="Exactly. /tree lets you jump back to before the bad turns and continue from there. The bad turns are not deleted; they just become a sidelined branch you can revisit if you change your mind."
+               data-explanation-wrong="Not quite. You want to keep the earlier good work and only undo the last few turns. /clone or /fork would copy the whole bad path into a new file, which is the opposite of what you want. /tree navigates back in place.">
+            <h3 class="quiz-question">Pi just spent 20 turns refactoring your code, and the last 3 turns made everything worse. You want to keep most of the work but undo the last 3 turns. What do you do?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="delete" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Delete the JSONL file and start fresh.</span>
+              </button>
+              <button class="quiz-option" data-value="tree" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Use <code>/tree</code> to navigate back 3 entries and continue from there.</span>
+              </button>
+              <button class="quiz-option" data-value="clone" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Use <code>/clone</code> to duplicate the session and keep working.</span>
+              </button>
+              <button class="quiz-option" data-value="fork" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Use <code>/fork</code> to copy the bad path into a new file.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="ondisk"
+               data-explanation-right="Right. The conversation was on disk in a JSONL file under ~/.pi/agent/sessions/ the whole time. Run pi -c to continue the most recent session, or pi -r to browse and pick."
+               data-explanation-wrong="Not quite. Closing the terminal does not erase the session file. Pi appends every message to a JSONL file on disk as you go, so the conversation survives shutdowns &mdash; that is the whole point of the session format.">
+            <h3 class="quiz-question">You ran pi, accidentally closed the terminal, and reopened it. Is your last conversation gone?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="gone" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Yes &mdash; closing the terminal kills the conversation.</span>
+              </button>
+              <button class="quiz-option" data-value="memory" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Only the last few messages are gone; the rest is in memory.</span>
+              </button>
+              <button class="quiz-option" data-value="ondisk" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No &mdash; it&rsquo;s in a JSONL file under <code>~/.pi/agent/sessions/</code>. Use <code>pi -c</code> or <code>pi -r</code>.</span>
+              </button>
+              <button class="quiz-option" data-value="cloud" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>It&rsquo;s safe in the cloud and will sync back when you log in.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="clone"
+               data-explanation-right="Exactly. Pi appends to the session file, so two processes writing to it at once will collide and corrupt the log. If they need parallel exploration, /clone gives each person their own file."
+               data-explanation-wrong="Think about what pi does to the file: it appends new lines as the conversation grows. Two processes appending to the same file at the same time will step on each other. The safe move is to give each person their own session file with /clone (or /fork).">
+            <h3 class="quiz-question">Two team members opened the same session file in two terminals. Can they safely work on it at once?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="yes" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Yes &mdash; pi merges their writes automatically.</span>
+              </button>
+              <button class="quiz-option" data-value="readonly" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Yes, but only one of them can send messages; the other is read-only.</span>
+              </button>
+              <button class="quiz-option" data-value="clone" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No &mdash; concurrent appends will collide. Use <code>/clone</code> so each person has their own file.</span>
+              </button>
+              <button class="quiz-option" data-value="tree" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No &mdash; but they can take turns by running <code>/tree</code> between messages.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="fork"
+               data-explanation-right="Exactly. /fork from the user message where the two paths diverge gives you two separate session files. Open one in each terminal and explore both approaches end-to-end, then compare the results."
+               data-explanation-wrong="Close, but not the best fit. /tree only lets you walk back and forth within one file &mdash; you can&rsquo;t run both paths at the same time. /clone duplicates the whole current branch, not the divergence point. /fork is built for exactly this: branch from a chosen point into two independent files.">
+            <h3 class="quiz-question">You want to compare &ldquo;use Postgres&rdquo; vs &ldquo;use SQLite&rdquo; side by side, running both conversations in parallel terminals. Which command sets that up best?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="tree" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span><code>/tree</code> &mdash; jump between the two paths inside one session.</span>
+              </button>
+              <button class="quiz-option" data-value="clone" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span><code>/clone</code> &mdash; duplicate the current branch as a new session.</span>
+              </button>
+              <button class="quiz-option" data-value="fork" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span><code>/fork</code> from the user message where they diverge &mdash; one file per approach.</span>
+              </button>
+              <button class="quiz-option" data-value="copy" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Manually copy the JSONL file with <code>cp</code> and edit it in a text editor.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module4')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module4')">Try Again</button>
+        </div>
+
+        <div class="callout callout-info animate-in" style="margin-top: var(--space-10)">
+          <div class="callout-icon">🌱</div>
+          <div class="callout-content">
+            <strong class="callout-title">Coming up next</strong>
+            <p>Long trees grow fast. The model has a maximum amount it can remember at once &mdash; and a busy session blows past it surprisingly quickly. What happens when you run out of room? That&rsquo;s Module 5.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
