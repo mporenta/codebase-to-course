@@ -1,0 +1,528 @@
+<section class="module" id="module-2" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">Meet the Cast</h1>
+      <p class="module-subtitle">Pi is a film crew, not a one-person show. Time to learn the names on the call sheet.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 1: Why split things into pieces? -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Why a crew, not a hero?</h2>
+
+        <p>When pi answers your prompt it <em>looks</em> like one thing happened. Under the hood, seven different pieces of code took a turn. Each one has a single job.</p>
+
+        <p>Think of an airport. One plane lands and rolls to the gate, but a small army made that happen: check-in, security, baggage, fueling, air-traffic control. Nobody tries to do all five. If the baggage belt jams, you fix the belt &mdash; you don&rsquo;t rebuild the runway.</p>
+
+        <div class="pattern-cards animate-in">
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#9992;</div>
+            <h4 class="pattern-title">One job each</h4>
+            <p class="pattern-desc">Air-traffic control routes planes. Baggage moves bags. Nobody multitasks. The work is cleaner because the role is narrow.</p>
+          </div>
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#128736;</div>
+            <h4 class="pattern-title">Swap without panic</h4>
+            <p class="pattern-desc">Fuel truck breaks? Bring another fuel truck. You don&rsquo;t need to ground every flight or retrain the pilots.</p>
+          </div>
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#128269;</div>
+            <h4 class="pattern-title">Precise bug reports</h4>
+            <p class="pattern-desc">&ldquo;Bag never arrived&rdquo; points at one team. &ldquo;The airport is broken&rdquo; points at nobody.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">The big idea: separation of concerns</strong>
+            <p><span class="term" data-definition="Splitting a program into pieces where each piece has exactly one job. When something breaks, you only have to look in one piece instead of the whole codebase.">Separation of concerns</span> is one of the most important ideas in software. When each component owns one job, you can swap, debug, or scale any of them without disturbing the rest. It is why pi has three run modes built from one core.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 2: The seven actors (Icon-Label Rows) -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The seven actors on set</h2>
+
+        <p>Here is the whole call sheet. Read it once and you will have the vocabulary to talk about pi like an engineer.</p>
+
+        <div class="icon-rows animate-in">
+
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-1)">&#127916;</div>
+            <div>
+              <strong>AgentSession &mdash; the director</strong>
+              <p>Coordinates everything: takes your prompt, calls the model, runs tools, writes results to disk, decides when to compact the history.</p>
+            </div>
+          </div>
+
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#128241;</div>
+            <div>
+              <strong>Agent &mdash; the messenger</strong>
+              <p>A lower-level library that actually talks to the language model <span class="term" data-definition="Application Programming Interface. A defined way for two pieces of software to send each other messages and data.">API</span>. AgentSession wraps it.</p>
+            </div>
+          </div>
+
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-3)">&#128075;</div>
+            <div>
+              <strong>Tools &mdash; the hands</strong>
+              <p>Functions the model can ask to run: read, write, edit, bash, plus a handful of search helpers. The model itself never touches your disk &mdash; tools do.</p>
+            </div>
+          </div>
+
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-4)">&#128221;</div>
+            <div>
+              <strong>SessionManager &mdash; the script supervisor</strong>
+              <p>Writes every message, tool call, and result to a <code>.jsonl</code> file on disk so the conversation survives a crash and can be replayed.</p>
+            </div>
+          </div>
+
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-5)">&#128092;</div>
+            <div>
+              <strong>Extensions &mdash; the wardrobe department</strong>
+              <p>User-installed <span class="term" data-definition="A piece of code that hooks into a larger program to add features without modifying it. Browser ad-blockers are plug-ins for browsers; pi extensions are plug-ins for pi.">plug-ins</span> that can register new tools, listen for <span class="term" data-definition="A signal sent when something happens, like the user pressed a key or a tool finished running. Extensions can listen for events and react.">events</span>, add slash commands, or replace built-in behavior.</p>
+            </div>
+          </div>
+
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-3)">&#128218;</div>
+            <div>
+              <strong>Skills &amp; Prompt Templates &mdash; the playbooks</strong>
+              <p>Markdown files that teach the model how to do specific tasks on demand. Think of them as scripts the director can hand the lead actor mid-scene.</p>
+            </div>
+          </div>
+
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#127909;</div>
+            <div>
+              <strong>Modes &mdash; the three cameras</strong>
+              <p>Same engine, different framing: <strong>interactive</strong> (the live <span class="term" data-definition="Terminal User Interface. A user interface drawn with text in a terminal window. Pi&rsquo;s interactive mode is a TUI.">TUI</span> in your terminal), <strong>print</strong> (one-shot, scripting), and <strong>RPC</strong> (machine-to-machine for IDE plugins).</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 3: Interactive Architecture Diagram -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">How the cast is arranged on set</h2>
+
+        <p>Names are easier to remember once you see where each one stands. Click any component below to read what it does.</p>
+
+        <div class="arch-diagram animate-in">
+
+          <div class="arch-zone arch-zone-browser">
+            <h4 class="arch-zone-label">Your Terminal &mdash; the cameras</h4>
+            <div class="arch-component" data-desc="Interactive mode: the live chat TUI you see when you run pi in a terminal. The most common way to use it." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128187;</div>
+              <span>interactive</span>
+            </div>
+            <div class="arch-component" data-desc="Print mode: run pi once, get an answer, exit. Built for scripts and pipelines where you want a single response." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128424;</div>
+              <span>print</span>
+            </div>
+            <div class="arch-component" data-desc="RPC mode: pi runs as a service so another program (like an IDE plugin) can talk to it over a structured channel." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128268;</div>
+              <span>rpc</span>
+            </div>
+          </div>
+
+          <div class="arch-zone arch-zone-extension">
+            <h4 class="arch-zone-label">Pi Core &mdash; the crew</h4>
+            <div class="arch-component" data-desc="AgentSession: the director. Coordinates every turn, calls tools, decides when to compact." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#127916;</div>
+              <span>AgentSession</span>
+            </div>
+            <div class="arch-component" data-desc="Agent: the messenger. The library that actually formats requests for the model and parses replies." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128241;</div>
+              <span>Agent</span>
+            </div>
+            <div class="arch-component" data-desc="Tools: the hands. Read, write, edit, bash, search. The only things in pi that touch your real files." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128075;</div>
+              <span>Tools</span>
+            </div>
+          </div>
+
+          <div class="arch-zone arch-zone-external">
+            <h4 class="arch-zone-label">Plug-ins &mdash; wardrobe &amp; props</h4>
+            <div class="arch-component" data-desc="Extensions: third-party plug-ins that can add tools, watch events, or change behavior without forking pi." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128092;</div>
+              <span>Extensions</span>
+            </div>
+            <div class="arch-component" data-desc="Skills and Prompt Templates: markdown files that teach the model how to perform a specific task on demand." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128218;</div>
+              <span>Skills / Templates</span>
+            </div>
+          </div>
+
+          <div class="arch-zone arch-zone-storage">
+            <h4 class="arch-zone-label">Storage &mdash; the script log</h4>
+            <div class="arch-component" data-desc="SessionManager writes every event to a .jsonl file so sessions survive crashes, can be resumed, and can be replayed." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128221;</div>
+              <span>SessionManager</span>
+            </div>
+            <div class="arch-component" data-desc="One line per event. JSONL files are append-only logs that any tool can read line by line." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#128190;</div>
+              <span>.jsonl files</span>
+            </div>
+          </div>
+
+          <div class="arch-zone arch-zone-external">
+            <h4 class="arch-zone-label">External &mdash; the lead actor</h4>
+            <div class="arch-component" data-desc="The language model itself, running on a remote server. Pi never bundles a model. It always asks one over the network." onclick="showArchDesc(this)">
+              <div class="arch-icon">&#129504;</div>
+              <span>LLM API</span>
+            </div>
+          </div>
+
+          <div class="arch-description" id="arch-desc-module2">Click any component to learn what it does.</div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 4: AgentSession the director (Code <-> English) -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">AgentSession: the director, up close</h2>
+
+        <p>If you only remember one name from this module, make it <strong>AgentSession</strong>. It is the <span class="term" data-definition="The piece that coordinates other pieces. It does not do the work itself; it tells other components when to do their work, in what order.">orchestrator</span> &mdash; the one piece of code that the other six all answer to. The comment at the top of the file says exactly what it owns.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"><span class="code-comment">/**</span></span>
+<span class="code-line"><span class="code-comment"> * AgentSession - Core abstraction for agent lifecycle and session management.</span></span>
+<span class="code-line"><span class="code-comment"> *</span></span>
+<span class="code-line"><span class="code-comment"> * This class is shared between all run modes (interactive, print, rpc).</span></span>
+<span class="code-line"><span class="code-comment"> * It encapsulates:</span></span>
+<span class="code-line"><span class="code-comment"> * - Agent state access</span></span>
+<span class="code-line"><span class="code-comment"> * - Event subscription with automatic session persistence</span></span>
+<span class="code-line"><span class="code-comment"> * - Model and thinking level management</span></span>
+<span class="code-line"><span class="code-comment"> * - Compaction (manual and auto)</span></span>
+<span class="code-line"><span class="code-comment"> * - Bash execution</span></span>
+<span class="code-line"><span class="code-comment"> * - Session switching and branching</span></span>
+<span class="code-line"><span class="code-comment"> *</span></span>
+<span class="code-line"><span class="code-comment"> * Modes use this class and add their own I/O layer on top.</span></span>
+<span class="code-line"><span class="code-comment"> */</span></span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><strong>AgentSession is the brain of one conversation.</strong> Every prompt you send lives inside one.</p>
+              <p class="tl"><strong>Shared between all run modes.</strong> Whether you use pi in your terminal, in a script, or via an IDE plugin, the same class runs the show.</p>
+              <p class="tl"><strong>Agent state access.</strong> Knows what has been said so far &mdash; the running transcript.</p>
+              <p class="tl"><strong>Event subscription with automatic session persistence.</strong> Listens for things that happen and writes them to disk so nothing is lost.</p>
+              <p class="tl"><strong>Model and thinking level management.</strong> Knows which model to call and how hard to make it think.</p>
+              <p class="tl"><strong>Compaction (manual and auto).</strong> Decides when to summarize the chat to save space when the history gets long.</p>
+              <p class="tl"><strong>Bash execution.</strong> Runs shell commands on your behalf when the model asks for them.</p>
+              <p class="tl"><strong>Session switching and branching.</strong> Lets you jump between conversations or fork one to try a different path.</p>
+              <p class="tl"><strong>Modes add their own I/O layer on top.</strong> The three ways to run pi all share this brain; only the screen they draw on differs.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Read that last line twice. It is the whole shape of pi in one sentence: <em>one brain, three faces</em>.</p>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 5: A typical turn, as a conversation (Group Chat) -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A typical turn, as a conversation</h2>
+
+        <p>To see the cast in action, watch one prompt move through the crew. The user typed: <em>list the .ts files in src</em>. Press <strong>Next Message</strong> to advance.</p>
+
+        <div class="chat-window animate-in" id="chat-module2-turn">
+          <div class="chat-messages">
+
+            <div class="chat-message" data-msg="0" data-sender="session">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">D</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">AgentSession &rarr; Agent</span>
+                <p>Here is the user message and the full chat history. Ask the model what to do next.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="1" data-sender="agent" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">A</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Agent &rarr; Model</span>
+                <p>User says: list the .ts files in src. What is your move?</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="2" data-sender="model" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-accent)">M</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-accent)">Model &rarr; Agent</span>
+                <p>Call the bash tool with <code>ls src/*.ts</code>.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="3" data-sender="agent" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">A</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Agent &rarr; AgentSession</span>
+                <p>Model wants to run bash. Here are the args.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="4" data-sender="session" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">D</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">AgentSession &rarr; Tools</span>
+                <p>Run this command. Here is the abort signal in case the user cancels.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="5" data-sender="tools" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">T</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Tools &rarr; AgentSession</span>
+                <p>Done. Output: foo.ts, bar.ts, baz.ts.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="6" data-sender="session" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-1)">D</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-1)">AgentSession &rarr; Agent</span>
+                <p>Send the result back to the model.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="7" data-sender="agent" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">A</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Agent &rarr; Model</span>
+                <p>Tool result: foo.ts, bar.ts, baz.ts. Continue.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="8" data-sender="model" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-accent)">M</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-accent)">Model &rarr; Agent</span>
+                <p>Three TypeScript files: foo, bar, baz. Done.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="chat-typing" style="display:none">
+            <div class="chat-avatar">?</div>
+            <div class="chat-typing-dots">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </div>
+          </div>
+
+          <div class="chat-controls">
+            <button class="btn chat-next-btn">Next Message</button>
+            <button class="btn chat-all-btn">Play All</button>
+            <button class="btn chat-reset-btn">Replay</button>
+            <span class="chat-progress"></span>
+          </div>
+        </div>
+
+        <p>Notice the model never touches your disk. It only ever says &ldquo;please run this&rdquo; and waits. <strong>Tools</strong> do the touching; <strong>AgentSession</strong> decides whether the request even leaves the building.</p>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 6: The three modes -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">One brain, three cameras</h2>
+
+        <p>Modes are different ways to <em>see</em> pi. The crew underneath is identical. This is separation of concerns paying rent.</p>
+
+        <div class="pattern-cards animate-in">
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#128187;</div>
+            <h4 class="pattern-title">interactive</h4>
+            <p class="pattern-desc">The live chat in your terminal &mdash; the TUI most people picture when they think of pi. Streaming text, keystrokes, the works.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#128424;</div>
+            <h4 class="pattern-title">print</h4>
+            <p class="pattern-desc">One prompt in, one answer out, exit. Built for scripts and shell pipelines. Same brain &mdash; just no chat loop.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#128268;</div>
+            <h4 class="pattern-title">rpc</h4>
+            <p class="pattern-desc">Pi runs as a service. Other programs talk to it over <span class="term" data-definition="Remote Procedure Call. A way for two programs to talk: program A sends a structured message, program B does something and sends a structured message back. Like a function call across program boundaries.">RPC</span> &mdash; an IDE plugin sends structured messages and gets structured replies.</p>
+          </div>
+
+        </div>
+
+        <h3 class="screen-subheading" style="margin-top: var(--space-8)">Pi&rsquo;s philosophy, in pi&rsquo;s words</h3>
+
+        <p>The README is unusually blunt about why pi looks the way it does. Read the code on the left; the right column says the same thing without the architecture-talk.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">README</span>
+            <pre><code><span class="code-line">Pi is aggressively extensible so it doesn&rsquo;t have to dictate your workflow.</span>
+<span class="code-line">Features that other tools bake in can be built with extensions, skills, or</span>
+<span class="code-line">installed from third-party pi packages. This keeps the core minimal while</span>
+<span class="code-line">letting you shape pi to fit how you work.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><strong>Pi&rsquo;s big bet:</strong> no harness can predict every workflow, so it ships small and lets you bolt things on.</p>
+              <p class="tl"><strong>Features other tools bake in</strong> &mdash; auto-formatters, custom commands, special prompts &mdash; live as extensions or skills here.</p>
+              <p class="tl"><strong>Third-party packages</strong> are the npm-style ecosystem: anyone can publish, you install what you want.</p>
+              <p class="tl"><strong>The result:</strong> other tools are appliances. Pi is a kit.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 7: Quiz -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check yourself</h2>
+
+        <p>Four scenarios. For each one, imagine you are debugging or designing &mdash; which part of the cast do you reach for?</p>
+
+        <div class="quiz-container animate-in" id="quiz-module2">
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly. The IDE plugin talks to pi over RPC mode; your terminal uses interactive mode. The AgentSession underneath is the same. Different camera, same crew."
+               data-explanation-wrong="Think about what is actually different between running pi in a terminal versus from an IDE. Hint: it is the I/O layer wrapping the same AgentSession, not the model or the tools.">
+            <h3 class="quiz-question">Pi is running fine in your terminal, but the same model &ldquo;works differently&rdquo; when used from an IDE extension. What is likely different?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The IDE is using a different model under the hood.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The mode is different &mdash; the IDE uses RPC, the terminal uses interactive. Same AgentSession, different I/O layer.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The tools are missing from the IDE build.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The IDE skips AgentSession and talks to the model directly.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right. Extensions are pi&rsquo;s official extension point: they can listen for events like tool_call and write a log line wherever you want. Editing AgentSession would mean forking pi itself."
+               data-explanation-wrong="Modifying pi&rsquo;s internals would mean maintaining a fork forever. Pi gives you a cleaner door: extensions can subscribe to events without changing core code.">
+            <h3 class="quiz-question">You want to log every tool call your team makes, across all developers, into a central file. Which component would you reach for first?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Edit AgentSession directly to add the logging call.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Wrap each tool with a custom version that logs.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Write an extension that listens for the tool_call event.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Ask the model nicely to log its own calls in the chat.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Correct. Tone and style live in the system prompt, which you can append to with a setting or an extension. The model is the same; the instructions it sees are what changed."
+               data-explanation-wrong="The model&rsquo;s personality on a given task comes from the system prompt &mdash; the standing instructions pi gives it before every turn. Swapping the model is the heavy hammer; tweaking the prompt is the screwdriver.">
+            <h3 class="quiz-question">The model keeps responding in a chatty, verbose style and you want terser answers across every session. Where does that personality live?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The system prompt &mdash; append a &ldquo;be terse&rdquo; instruction via a setting or extension.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Swap to a smaller model.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Edit the SessionManager so it filters long messages.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Disable the bash tool.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-d"
+               data-explanation-right="Yes. The model only ever asks for a tool to be run; AgentSession routes the request to Tools, which actually touches the disk. If a file write failed, the smoking gun is the tool wrapper, not the model."
+               data-explanation-wrong="Remember the chat animation: the model never touches your files. It says please run this and the tools do the work. So a failed write means a tool returned an error.">
+            <h3 class="quiz-question">A teammate says &ldquo;pi just told me it saved the file but it didn&rsquo;t.&rdquo; Where do you look first?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model &mdash; it must have hallucinated the save.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The mode &mdash; interactive mode must be broken.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The SessionManager &mdash; it failed to log the file.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The write tool &mdash; the model asked for the save, but the tool result probably came back with an error AgentSession surfaced.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')">Try Again</button>
+        </div>
+
+        <div class="callout callout-info animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">&#127916;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Up next: into the wings with Tools</strong>
+            <p>You have met the cast. Next module, we follow the most important supporting actor &mdash; the <strong>tools</strong> &mdash; into the wings, and see how the model actually grabs them.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</section>
