@@ -1,0 +1,349 @@
+<section class="module" id="module-1" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">The Switchboard</h1>
+      <p class="module-subtitle">Your prompt is a phone call. Pi is the operator routing it through five junction boxes before the AI ever picks up.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- =================== SCREEN 1: WHAT PI ACTUALLY IS =================== -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Pi is not the AI</h2>
+
+        <p>You type <em>"summarize this file"</em> and the AI responds. Feels like one thing talking to you. It is not.</p>
+
+        <p>Pi is a <span class="term" data-definition="Command-Line Interface. A program you control by typing text into a terminal window instead of clicking buttons. Pi is a CLI — you launch it by running 'pi' in your terminal.">CLI</span> that wraps an AI. It runs in your <span class="term" data-definition="The black window where you type commands like cd or ls. On Mac it is called Terminal; on Windows it is PowerShell or Windows Terminal.">terminal</span>, takes your text, and talks to a <span class="term" data-definition="A statistical text-prediction program trained on a huge amount of text. Given some text, it predicts what text should come next. That is it — but if you give it the right text, what comes next can be code, an answer, or a tool call.">language model</span> on your behalf. The model lives somewhere else (OpenAI, Anthropic). Pi lives on your laptop.</p>
+
+        <!-- HERO VISUAL: terminal -> pi -> model -->
+        <div class="flow-diagram animate-in" style="display:grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items:center; gap: var(--space-4); padding: var(--space-6); background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); margin: var(--space-8) 0;">
+          <div style="text-align:center; padding: var(--space-5); border: 2px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-warm);">
+            <div style="font-size: 2.5rem;">⌨️</div>
+            <strong style="display:block; margin-top: var(--space-2);">Your Terminal</strong>
+            <span style="font-size: var(--text-xs); color: var(--color-text-secondary);">where you type</span>
+          </div>
+          <div style="font-size: 1.5rem; color: var(--color-accent);">→</div>
+          <div style="text-align:center; padding: var(--space-5); border: 2px dashed var(--color-accent); border-radius: var(--radius-md); background: var(--color-accent-light);">
+            <div style="font-size: 2.5rem;">⚙️</div>
+            <strong style="display:block; margin-top: var(--space-2); color: var(--color-accent);">Pi (the harness)</strong>
+            <span style="font-size: var(--text-xs); color: var(--color-text-secondary);">routes, runs tools, remembers</span>
+          </div>
+          <div style="font-size: 1.5rem; color: var(--color-accent);">→</div>
+          <div style="text-align:center; padding: var(--space-5); border: 2px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-warm);">
+            <div style="font-size: 2.5rem;">🧠</div>
+            <strong style="display:block; margin-top: var(--space-2);">The Model</strong>
+            <span style="font-size: var(--text-xs); color: var(--color-text-secondary);">just predicts text</span>
+          </div>
+        </div>
+
+        <p>Think of an old telephone switchboard operator: you tell them <em>"connect me to my aunt in Cleveland"</em> and they physically plug wires into the right sockets. Pi is the operator. The model is your aunt. Most things that go wrong, go wrong in the wires — not at your aunt's house.</p>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">💡</div>
+          <div class="callout-content">
+            <strong class="callout-title">The thing to remember</strong>
+            <p>The model never touches your computer. It only writes text. Every file change, every command, every <span class="term" data-definition="Application Programming Interface. The phone number of an internet service. Pi calls Anthropic API to talk to Claude, or OpenAI API to talk to GPT-4o.">API</span> call is pi running a <span class="term" data-definition="A function the AI model can ask the harness to run on its behalf. Pi ships four built-in tools: read, write, edit, bash.">tool</span> on the model's behalf. If something happened on your machine, pi did it — not the AI.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== SCREEN 2: THE JOURNEY OF ONE PROMPT =================== -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The journey of one prompt</h2>
+
+        <p>You type <code>summarize this README</code> and hit Enter. Before the model sees a single word, your message passes through five distinct stages inside pi.</p>
+
+        <div class="step-cards animate-in">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Input capture</strong>
+              <p>Interactive mode reads what you typed in the little editor at the bottom of the screen. Print mode reads it from the command-line arguments you ran pi with.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Preflight</strong>
+              <p>Pi peeks at your message before sending it. Did you type a slash command like <code>/clear</code>? Did you reference a skill? Is a model even configured? These checks happen here.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>System prompt assembly</strong>
+              <p>Pi mixes a hidden bundle of text: base instructions, tool descriptions, any active skills, and a sketch of your project. This becomes the <span class="term" data-definition="A block of text the harness prepends to every conversation, invisible to the user. It tells the model what role it should play, what tools it has, what guidelines to follow.">system prompt</span> — the briefing the model reads before answering you.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>LLM call</strong>
+              <p>Pi packages your message plus the system prompt and ships it over the network to the model's API. This is the only stage where your text leaves your laptop.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <strong>The turn loop</strong>
+              <p>The model replies. If it asked to run a tool, pi runs it, sends the result back, and the model speaks again. This loop continues until the model says "I am done" — which might be one round, or twenty.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>The class that orchestrates all of this is called <code>AgentSession</code>. Here is how the pi codebase describes it, in its own words.</p>
+
+        <!-- Translation block A: AgentSession comment -->
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"><span class="code-comment">/**</span></span>
+<span class="code-line"><span class="code-comment"> * AgentSession - Core abstraction for agent lifecycle and session management.</span></span>
+<span class="code-line"><span class="code-comment"> *</span></span>
+<span class="code-line"><span class="code-comment"> * This class is shared between all run modes (interactive, print, rpc).</span></span>
+<span class="code-line"><span class="code-comment"> * It encapsulates:</span></span>
+<span class="code-line"><span class="code-comment"> * - Agent state access</span></span>
+<span class="code-line"><span class="code-comment"> * - Event subscription with automatic session persistence</span></span>
+<span class="code-line"><span class="code-comment"> * - Model and thinking level management</span></span>
+<span class="code-line"><span class="code-comment"> * - Compaction (manual and auto)</span></span>
+<span class="code-line"><span class="code-comment"> * - Bash execution</span></span>
+<span class="code-line"><span class="code-comment"> * - Session switching and branching</span></span>
+<span class="code-line"><span class="code-comment"> *</span></span>
+<span class="code-line"><span class="code-comment"> * Modes use this class and add their own I/O layer on top.</span></span>
+<span class="code-line"><span class="code-comment"> */</span></span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><strong>This is the brain</strong> that sits between your keyboard and the AI.</p>
+              <p class="tl">It works the same way whether you launched pi to chat, to run one quick prompt, or to be controlled by another program.</p>
+              <p class="tl">It tracks the conversation state.</p>
+              <p class="tl">It listens for things happening and saves the session to disk so nothing is lost.</p>
+              <p class="tl">It picks which model to call and how hard it should think.</p>
+              <p class="tl">It compresses old conversation when memory fills up.</p>
+              <p class="tl">It runs shell commands when the model asks.</p>
+              <p class="tl">It can split a conversation off into a side-branch and switch back.</p>
+              <p class="tl">In short: every chapter of this course is one bullet from this list.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== SCREEN 3: THE TURN LOOP =================== -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The turn loop (the most important idea in this course)</h2>
+
+        <p>The model is not a one-shot oracle. It does not read your prompt and produce one final answer. It works in <span class="term" data-definition="One round-trip of the model: it speaks once (possibly asking for tools), pi handles whatever it asks for, and then the model speaks again. A single user prompt usually triggers multiple turns.">turns</span>.</p>
+
+        <p>Each turn, the model says either <em>"here is some text for the user"</em> or <em>"please run this tool for me."</em> Pi handles the tool call, hands the result back, and the model takes another turn. The cycle repeats until the model decides it has nothing left to ask for.</p>
+
+        <!-- DATA FLOW ANIMATION -->
+        <div class="flow-animation animate-in" data-steps='[
+          {"highlight":"flow-actor-1","label":"You type a prompt and hit Enter"},
+          {"highlight":"flow-actor-2","label":"Pi receives the message and runs preflight checks","packet":true,"from":"actor-1","to":"actor-2"},
+          {"highlight":"flow-actor-3","label":"Pi assembles the system prompt with tools and context","packet":true,"from":"actor-2","to":"actor-3"},
+          {"highlight":"flow-actor-4","label":"The full conversation goes to the language model","packet":true,"from":"actor-2","to":"actor-4"},
+          {"highlight":"flow-actor-4","label":"The model decides it wants to run a tool"},
+          {"highlight":"flow-actor-5","label":"Pi runs the tool on the model behalf","packet":true,"from":"actor-4","to":"actor-5"},
+          {"highlight":"flow-actor-4","label":"Tool result flows back to the model","packet":true,"from":"actor-5","to":"actor-4"},
+          {"highlight":"flow-actor-4","label":"The model decides it has enough info and writes the answer"},
+          {"highlight":"flow-actor-1","label":"Pi delivers the answer to your terminal","packet":true,"from":"actor-4","to":"actor-1"}
+        ]'>
+          <div class="flow-actors">
+            <div class="flow-actor" id="flow-actor-1" style="--actor-color: var(--color-actor-2);">
+              <div class="flow-actor-icon">⌨️</div>
+              <span>You</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-2" style="--actor-color: var(--color-actor-1);">
+              <div class="flow-actor-icon">⚙️</div>
+              <span>Pi</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-3" style="--actor-color: var(--color-actor-3);">
+              <div class="flow-actor-icon">📜</div>
+              <span>System Prompt</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-4" style="--actor-color: var(--color-actor-4);">
+              <div class="flow-actor-icon">🧠</div>
+              <span>The Model</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-5" style="--actor-color: var(--color-actor-5);">
+              <div class="flow-actor-icon">🔨</div>
+              <span>Tools</span>
+            </div>
+          </div>
+
+          <div class="flow-packet" id="flow-packet"></div>
+          <div class="flow-step-label" id="flow-label">Click "Next Step" to follow your prompt through the switchboard.</div>
+
+          <div class="flow-controls">
+            <button class="btn flow-next-btn">Next Step</button>
+            <button class="btn flow-reset-btn">Restart</button>
+            <span class="flow-progress"></span>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">🔁</div>
+          <div class="callout-content">
+            <strong class="callout-title">Why this matters when things go wrong</strong>
+            <p>When pi "gets stuck" running the same command over and over, it is not a glitch — it is the turn loop. The model keeps asking for the same tool because the result keeps not satisfying it. Knowing this, you can break the loop with a fresh message instead of waiting helplessly.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================== SCREEN 4: THE FOUR BUILT-IN TOOLS =================== -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The four tools the model can actually use</h2>
+
+        <p>The model can ONLY affect the world through tools. Pi ships four built-in ones. That is the entire vocabulary the AI has for touching your computer.</p>
+
+        <div class="icon-rows animate-in" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); margin: var(--space-6) 0;">
+          <div style="padding: var(--space-5); background: var(--color-surface); border-radius: var(--radius-md); border-left: 3px solid var(--color-actor-1); box-shadow: var(--shadow-sm);">
+            <div style="font-size: 1.75rem;">📖</div>
+            <strong style="display:block; margin-top: var(--space-2);">read</strong>
+            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: var(--space-1) 0 0;">Open a file and return its contents.</p>
+          </div>
+          <div style="padding: var(--space-5); background: var(--color-surface); border-radius: var(--radius-md); border-left: 3px solid var(--color-actor-2); box-shadow: var(--shadow-sm);">
+            <div style="font-size: 1.75rem;">✍️</div>
+            <strong style="display:block; margin-top: var(--space-2);">write</strong>
+            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: var(--space-1) 0 0;">Create a new file or overwrite an existing one.</p>
+          </div>
+          <div style="padding: var(--space-5); background: var(--color-surface); border-radius: var(--radius-md); border-left: 3px solid var(--color-actor-3); box-shadow: var(--shadow-sm);">
+            <div style="font-size: 1.75rem;">✂️</div>
+            <strong style="display:block; margin-top: var(--space-2);">edit</strong>
+            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: var(--space-1) 0 0;">Change a specific chunk of a file without rewriting the whole thing.</p>
+          </div>
+          <div style="padding: var(--space-5); background: var(--color-surface); border-radius: var(--radius-md); border-left: 3px solid var(--color-actor-4); box-shadow: var(--shadow-sm);">
+            <div style="font-size: 1.75rem;">💻</div>
+            <strong style="display:block; margin-top: var(--space-2);">bash</strong>
+            <p style="font-size: var(--text-sm); color: var(--color-text-secondary); margin: var(--space-1) 0 0;">Run a <span class="term" data-definition="The program that runs terminal commands. bash is one specific shell, but most people use the words interchangeably.">shell</span> command — anything you could type in your terminal.</p>
+          </div>
+        </div>
+
+        <p>Plus a few helpers like <code>find</code>, <code>grep</code>, and <code>ls</code>. But what <em>is</em> a tool, technically? It is a name, a description, and a <span class="term" data-definition="A description of what a piece of data must look like. The bash schema says: this tool call must have a string named command and may have a number named timeout.">schema</span> for its arguments. Here is the real one for bash.</p>
+
+        <!-- Translation block B: bash schema -->
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+            <pre><code><span class="code-line"><span class="code-keyword">const</span> bashSchema = Type.<span class="code-function">Object</span>({</span>
+<span class="code-line">    <span class="code-property">command</span>: Type.<span class="code-function">String</span>({ <span class="code-property">description</span>: <span class="code-string">"Bash command to execute"</span> }),</span>
+<span class="code-line">    <span class="code-property">timeout</span>: Type.<span class="code-function">Optional</span>(Type.<span class="code-function">Number</span>({ <span class="code-property">description</span>: <span class="code-string">"Timeout in seconds (optional, no default timeout)"</span> })),</span>
+<span class="code-line">});</span>
+            </code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">When the model wants to run a shell command, this is the <strong>shape</strong> of the request it has to send.</p>
+              <p class="tl">It must include a piece of text called <code>command</code> — the actual command line, like <code>ls -la</code>. The description tells the model what this field is for.</p>
+              <p class="tl">It can optionally include a number called <code>timeout</code> — how many seconds to wait before giving up. If the model leaves it out, pi waits forever.</p>
+              <p class="tl">End of the recipe. If the model sends anything that does not match this shape, pi rejects it before running anything.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>That is the entire grammar of a tool: a name (<code>bash</code>), a description (what it does), and a schema (what fields the call must contain). The model reads this in the system prompt and then crafts requests that match.</p>
+      </section>
+
+      <!-- =================== SCREEN 5: QUIZ =================== -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your switchboard intuition</h2>
+
+        <p>Three scenarios. For each one, think about <em>which junction box</em> the problem most likely lives in. There is no score — wrong answers come with the most useful explanations.</p>
+
+        <div class="quiz-container" id="quiz-module1">
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly. The model never touches your filesystem directly — it only described a tool call. Pi (or the read tool) ran it with whatever path the model produced, and that path was wrong (typo, relative path interpreted from the wrong directory, etc.). The model is just truthfully relaying what the tool reported."
+               data-explanation-wrong="Not quite. The model itself cannot see your files — it only sees what pi sends back from a tool. So if pi reports back nothing, the model honestly says nothing was there. The problem is upstream of the model: in how the tool was called or what directory pi is running in.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario 1</span>
+                <p>You ask pi to read <code>notes.md</code>. The model thinks for a moment, then says <em>"that file does not exist."</em> But you can see <code>notes.md</code> right there in your editor. Where does the bug most likely live?</p>
+              </div>
+              <div class="quiz-options">
+                <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>The model is hallucinating — it forgot what files exist.</span>
+                </button>
+                <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>The tool ran but with the wrong path — pi is in a different directory than your editor, or the model passed a typo.</span>
+                </button>
+                <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>The API call to the language model failed silently.</span>
+                </button>
+              </div>
+              <div class="quiz-feedback"></div>
+            </div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right. The model is taking turn after turn, asking for the same tool because the result never resolves what it is trying to do. It is not broken — it is the turn loop doing exactly what it was built to do. Send a new message that redirects it, or hit the abort key."
+               data-explanation-wrong="Close, but think about the loop. The model does not have a memory bug or an API bug — it is choosing, turn after turn, to try the same thing again because nothing has told it the result was good enough. You can break the cycle by giving it new information.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario 2</span>
+                <p>Pi looks like it is stuck — it keeps running <code>npm test</code> over and over, each time with slightly different flags. Nothing is hanging; new output keeps appearing. What is happening?</p>
+              </div>
+              <div class="quiz-options">
+                <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>The bash tool has a bug and is duplicating commands.</span>
+                </button>
+                <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>Pi lost connection to the model and is retrying the last request.</span>
+                </button>
+                <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>The model is stuck in its turn loop — each turn it asks for the same tool because the result is not what it wanted. Steer it with a new message or abort.</span>
+                </button>
+              </div>
+              <div class="quiz-feedback"></div>
+            </div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Yes. The model only speaks text. To deploy anything, there must be a tool — built-in or added via an extension — that translates a tool call into an actual deploy command. Without one, the model can describe a deploy beautifully but nothing will happen."
+               data-explanation-wrong="Think about what the model can actually do. It cannot reach out and touch your servers — it can only ask pi to run something. The deploy has to exist as a tool first, or no amount of clever prompting will make it real.">
+            <div class="scenario-block">
+              <div class="scenario-context">
+                <span class="scenario-label">Scenario 3</span>
+                <p>You want pi to deploy your app to production. What has to be true for this to even be possible?</p>
+              </div>
+              <div class="quiz-options">
+                <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>There has to be a tool — built-in (like bash) or added via an extension — that the model can call to perform the deploy.</span>
+                </button>
+                <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>The model needs to be on its "production" setting.</span>
+                </button>
+                <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                  <div class="quiz-option-radio"></div>
+                  <span>You need to phrase the prompt with the word "deploy" so the model knows what to do.</span>
+                </button>
+              </div>
+              <div class="quiz-feedback"></div>
+            </div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')">Try Again</button>
+        </div>
+
+        <p style="margin-top: var(--space-8); padding: var(--space-5); background: var(--color-surface-warm); border-left: 3px solid var(--color-accent); border-radius: var(--radius-sm);"><strong>Up next:</strong> We saw the route. Next module, we meet the players who staff each junction box — AgentSession, Tools, Extensions, the Session Manager, Compaction, Modes, and Skills. Each one is a "character" with a specific job. Once you know the cast, the rest of the course is just watching them work.</p>
+      </section>
+
+    </div>
+  </div>
+</section>
