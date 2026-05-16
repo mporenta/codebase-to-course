@@ -1,0 +1,815 @@
+<section class="module" id="module-6" style="background: var(--color-bg)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">06</span>
+      <h1 class="module-title">Making Pi Yours</h1>
+      <p class="module-subtitle">Pi is a power strip. The interesting stuff is what you plug in.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 1: The minimalist's bet (Snippet A) -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The minimalist&rsquo;s bet</h2>
+
+        <p>Think of pi as a power strip with empty outlets. The strip by itself does almost nothing &mdash; a few minimal tools, a basic UI, the turn loop. The interesting power comes from what you plug in.</p>
+
+        <p>Other AI coding tools ship as full appliances: <span class="term" data-definition="A feature in some AI tools where the model first writes a plan and asks you to approve before doing the work. Pi does not bake this in &mdash; you can build it as an extension or save a make-a-plan-first skill.">plan mode</span> built in, <span class="term" data-definition="A separate AI session spawned by the main session to handle a sub-task. Pi does not bake this in; you can build it as an extension.">sub-agents</span> built in, <span class="term" data-definition="Model Context Protocol. A standard for letting AI tools talk to external services. Pi deliberately does not support it natively (you can add support with an extension); the maintainers think tool calls plus READMEs are simpler.">MCP</span> built in. Pi has none of these by default. That is the bet.</p>
+
+        <!-- Hero visual: the power strip -->
+        <div class="power-strip animate-in" aria-hidden="true">
+          <div class="ps-cord"></div>
+          <div class="ps-body">
+            <div class="ps-label">pi (the strip)</div>
+            <div class="ps-outlets">
+              <div class="ps-outlet"><div class="ps-outlet-icon">+</div><span>skill</span></div>
+              <div class="ps-outlet"><div class="ps-outlet-icon">+</div><span>extension</span></div>
+              <div class="ps-outlet"><div class="ps-outlet-icon">+</div><span>template</span></div>
+              <div class="ps-outlet"><div class="ps-outlet-icon">+</div><span>extension</span></div>
+              <div class="ps-outlet"><div class="ps-outlet-icon">+</div><span>skill</span></div>
+            </div>
+            <div class="ps-foot">small core &middot; standard outlets &middot; you choose what to plug in</div>
+          </div>
+        </div>
+
+        <style>
+          .power-strip {
+            display: flex; flex-direction: column; align-items: center;
+            margin: var(--space-8) 0;
+          }
+          .ps-cord {
+            width: 4px; height: 36px;
+            background: var(--color-border);
+            border-radius: 2px;
+          }
+          .ps-body {
+            background: var(--color-bg-code);
+            color: #CDD6F4;
+            border-radius: var(--radius-lg);
+            padding: var(--space-5) var(--space-6);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 720px;
+          }
+          .ps-label {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: var(--text-xs);
+            opacity: 0.6;
+            margin-bottom: var(--space-3);
+          }
+          .ps-outlets {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-3);
+          }
+          .ps-outlet {
+            background: rgba(255,255,255,0.04);
+            border: 1.5px dashed rgba(217, 79, 48, 0.5);
+            border-radius: var(--radius-md);
+            padding: var(--space-4) var(--space-2);
+            display: flex; flex-direction: column; align-items: center;
+            gap: var(--space-2);
+            font-size: var(--text-xs);
+            font-family: var(--font-mono);
+            color: #CDD6F4;
+          }
+          .ps-outlet-icon {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--color-accent);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: var(--text-lg);
+          }
+          .ps-foot {
+            margin-top: var(--space-4);
+            text-align: center;
+            font-size: var(--text-xs);
+            opacity: 0.6;
+            letter-spacing: 0.05em;
+          }
+          @media (max-width: 600px) {
+            .ps-outlets { grid-template-columns: repeat(3, 1fr); }
+          }
+        </style>
+
+        <p>The pi README is unusually blunt about this trade-off. Read it on the left; the right side is the same idea in plain English.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">README</span>
+<pre><code><span class="code-line">Pi is aggressively extensible so it doesn&rsquo;t have to dictate your workflow.</span>
+<span class="code-line">Features that other tools bake in can be built with extensions, skills, or</span>
+<span class="code-line">installed from third-party pi packages. This keeps the core minimal while</span>
+<span class="code-line">letting you shape pi to fit how you work.</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><strong>Aggressively extensible</strong> &mdash; pi does not pick a workflow for you. It picks a kit.</p>
+              <p class="tl"><strong>Features other tools bake in</strong> &mdash; plan mode, todo lists, MCP, fancy permission popups &mdash; live as plug-ins here.</p>
+              <p class="tl"><strong>Third-party packages</strong> &mdash; the npm-style ecosystem. Anyone can publish, you install what you want.</p>
+              <p class="tl"><strong>The result:</strong> other tools are appliances. Pi is the kit you build the appliance out of.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Why ship a kit instead of a finished product?</strong>
+            <p>Because every team&rsquo;s workflow is different, and a baked-in feature is one you can never fully change. A small core plus open outlets beats a big core with locked switches.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 2: The three customization surfaces -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Three kinds of plug</h2>
+
+        <p>Pi exposes three official outlets. Each one fits a different shape of customization. Pick the smallest one that solves the problem.</p>
+
+        <div class="pattern-cards animate-in">
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#128221;</div>
+            <h4 class="pattern-title">Skills</h4>
+            <p class="pattern-desc"><strong>Markdown files</strong> in <code>~/.pi/agent/skills/</code>. The model reads them on demand when relevant. Best for instructions, conventions, how-tos &mdash; &ldquo;here is how our team writes PRs.&rdquo;</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#128203;</div>
+            <h4 class="pattern-title">Prompt Templates</h4>
+            <p class="pattern-desc"><strong>Markdown with placeholders</strong> in <code>~/.pi/agent/prompts/</code>. Type <code>/templatename</code> in chat and it expands. Best for repeated prompts: <code>/review</code>, <code>/explain</code>, <code>/refactor</code>.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+            <div class="pattern-icon" style="background: var(--color-accent)">&#9889;</div>
+            <h4 class="pattern-title">Extensions</h4>
+            <p class="pattern-desc"><strong><span class="term" data-definition="A flavor of JavaScript with type checking. Pi is written in TypeScript. Extensions are too, but you only need a tiny amount to write a useful one.">TypeScript</span> code</strong> that pi loads at startup. Best for anything dynamic &mdash; new tools, event hooks, integrations, custom UI.</p>
+          </div>
+        </div>
+
+        <div class="icon-rows animate-in" style="margin-top: var(--space-10)">
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-4)">&#128221;</div>
+            <div>
+              <strong>Choose a skill when&hellip;</strong>
+              <p>You want pi to <em>know</em> something static. Conventions. Style guides. &ldquo;Always check this file before touching the database.&rdquo;</p>
+            </div>
+          </div>
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-actor-2)">&#128203;</div>
+            <div>
+              <strong>Choose a template when&hellip;</strong>
+              <p>You keep typing the same prompt. Turn it into <code>/review security</code> or <code>/draft-pr</code> with a saved file and an argument slot.</p>
+            </div>
+          </div>
+          <div class="icon-row">
+            <div class="icon-circle" style="background: var(--color-accent)">&#9889;</div>
+            <div>
+              <strong>Choose an extension when&hellip;</strong>
+              <p>You need <em>code</em> to run &mdash; a new tool, a confirmation popup, a Slack ping, a git checkpoint. Anything dynamic.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 3: A real extension, end to end (Snippet B) -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A real extension, end to end</h2>
+
+        <p>Here is a complete, working extension from <code>examples/extensions/permission-gate.ts</code>. Thirty lines. It blocks <code>rm -rf</code>, <code>sudo</code>, and <code>chmod 777</code> until you confirm in the <span class="term" data-definition="Terminal User Interface &mdash; the text-based UI you see when running pi interactively. Buttons, menus, and prompts drawn with characters in your terminal window.">TUI</span>.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">permission-gate.ts</span>
+<pre><code><span class="code-line"><span class="code-comment">/**</span></span>
+<span class="code-line"><span class="code-comment"> * Permission Gate Extension</span></span>
+<span class="code-line"><span class="code-comment"> *</span></span>
+<span class="code-line"><span class="code-comment"> * Prompts for confirmation before running potentially dangerous bash commands.</span></span>
+<span class="code-line"><span class="code-comment"> * Patterns checked: rm -rf, sudo, chmod/chown 777</span></span>
+<span class="code-line"><span class="code-comment"> */</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">import type</span> { ExtensionAPI } <span class="code-keyword">from</span> <span class="code-string">&quot;@earendil-works/pi-coding-agent&quot;</span>;</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export default function</span> (pi: ExtensionAPI) {</span>
+<span class="code-line">    <span class="code-keyword">const</span> dangerousPatterns = [/\brm\s+(-rf?|--recursive)/i, /\bsudo\b/i, /\b(chmod|chown)\b.*777/i];</span>
+<span class="code-line"></span>
+<span class="code-line">    pi.<span class="code-function">on</span>(<span class="code-string">&quot;tool_call&quot;</span>, <span class="code-keyword">async</span> (event, ctx) =&gt; {</span>
+<span class="code-line">        <span class="code-keyword">if</span> (event.toolName !== <span class="code-string">&quot;bash&quot;</span>) <span class="code-keyword">return</span> undefined;</span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="code-keyword">const</span> command = event.input.command <span class="code-keyword">as string</span>;</span>
+<span class="code-line">        <span class="code-keyword">const</span> isDangerous = dangerousPatterns.<span class="code-function">some</span>((p) =&gt; p.<span class="code-function">test</span>(command));</span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="code-keyword">if</span> (isDangerous) {</span>
+<span class="code-line">            <span class="code-keyword">if</span> (!ctx.hasUI) {</span>
+<span class="code-line">                <span class="code-comment">// In non-interactive mode, block by default</span></span>
+<span class="code-line">                <span class="code-keyword">return</span> { <span class="code-property">block</span>: <span class="code-keyword">true</span>, <span class="code-property">reason</span>: <span class="code-string">&quot;Dangerous command blocked (no UI for confirmation)&quot;</span> };</span>
+<span class="code-line">            }</span>
+<span class="code-line"></span>
+<span class="code-line">            <span class="code-keyword">const</span> choice = <span class="code-keyword">await</span> ctx.ui.<span class="code-function">select</span>(<span class="code-string">`&#9888;&#65039; Dangerous command:\n\n  ${command}\n\nAllow?`</span>, [<span class="code-string">&quot;Yes&quot;</span>, <span class="code-string">&quot;No&quot;</span>]);</span>
+<span class="code-line"></span>
+<span class="code-line">            <span class="code-keyword">if</span> (choice !== <span class="code-string">&quot;Yes&quot;</span>) {</span>
+<span class="code-line">                <span class="code-keyword">return</span> { <span class="code-property">block</span>: <span class="code-keyword">true</span>, <span class="code-property">reason</span>: <span class="code-string">&quot;Blocked by user&quot;</span> };</span>
+<span class="code-line">            }</span>
+<span class="code-line">        }</span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="code-keyword">return</span> undefined;</span>
+<span class="code-line">    });</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Doc comment. Tells humans what this file is for.</p>
+              <p class="tl">Pull in the <span class="term" data-definition="The set of helper functions an extension is allowed to call on pi &mdash; like on(...) and registerTool(...). The official surface pi exposes to plug-ins.">ExtensionAPI</span> type so the editor can autocomplete what pi gives us.</p>
+              <p class="tl"><strong>Every extension is a function</strong> pi calls at startup, handing it the extension API as <code>pi</code>.</p>
+              <p class="tl">A list of three <span class="term" data-definition="A pattern for matching text. The expression rm followed by spaces and -rf matches the words it spots in dangerous commands. Used here to flag risky bash calls.">regular expressions</span> &mdash; the patterns we treat as dangerous.</p>
+              <p class="tl"><span class="term" data-definition="Tell a publisher: let me know when this event happens. Extensions subscribe to events; pi publishes them.">Subscribe</span> to the <code>tool_call</code> event. Pi will run this function every time the model wants to call any tool.</p>
+              <p class="tl">Only care about <code>bash</code> calls. For everything else, return <code>undefined</code> &mdash; pi-speak for &ldquo;no opinion, let it through.&rdquo;</p>
+              <p class="tl">Grab the command string the model wants to run.</p>
+              <p class="tl">Check it against every pattern. If any match, it is dangerous.</p>
+              <p class="tl">If we are running headless (no UI), play it safe and block.</p>
+              <p class="tl">Otherwise, pop up a TUI dialog asking the user to allow or deny.</p>
+              <p class="tl">If they said anything other than Yes, return a block decision. Pi will not run the tool and will tell the model why.</p>
+              <p class="tl">All clear &mdash; return <code>undefined</code> and let the command through.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Notice what is <em>not</em> here. No mention of pi&rsquo;s internals. No fork. No monkey-patching. Just one event subscription and a return value. That is the whole API.</p>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 4: The event bus (Snippet D) + chat animation -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">How extensions stay out of each other&rsquo;s way</h2>
+
+        <p>Pi can run many extensions at once. If one of them throws an error, you do not want it dragging the whole session down. Pi&rsquo;s <strong>event bus</strong> is the safety layer that keeps extensions <span class="term" data-definition="Keeping pieces of a program separate so one cannot break the others. Pi wraps every event handler in try/catch &mdash; that is isolation. Browsers run each tab in its own process &mdash; also isolation.">isolated</span>.</p>
+
+        <p>Think of it as a postal sorting facility. Many recipients, one stream of letters, each recipient only opens their own. If one recipient drops their letter and screams, the next recipient still gets theirs.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">event-bus.ts</span>
+<pre><code><span class="code-line"><span class="code-function">on</span>: (channel, handler) =&gt; {</span>
+<span class="code-line">    <span class="code-keyword">const</span> safeHandler = <span class="code-keyword">async</span> (data: <span class="code-keyword">unknown</span>) =&gt; {</span>
+<span class="code-line">        <span class="code-keyword">try</span> { <span class="code-keyword">await</span> <span class="code-function">handler</span>(data); }</span>
+<span class="code-line">        <span class="code-keyword">catch</span> (err) { console.<span class="code-function">error</span>(<span class="code-string">`Event handler error (${channel}):`</span>, err); }</span>
+<span class="code-line">    };</span>
+<span class="code-line">    emitter.<span class="code-function">on</span>(channel, safeHandler);</span>
+<span class="code-line">    <span class="code-keyword">return</span> () =&gt; emitter.<span class="code-function">off</span>(channel, safeHandler);</span>
+<span class="code-line">},</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><code>on</code> is the function extensions call to subscribe. It takes a channel name and a <span class="term" data-definition="The function that runs when an event happens. The thing you pass to pi.on(tool_call, handler).">handler</span> function.</p>
+              <p class="tl">Pi does not pass your handler straight to the emitter. It wraps it in <code>safeHandler</code> first.</p>
+              <p class="tl"><strong>The whole point:</strong> <span class="term" data-definition="A programming pattern: try this code, and if it errors, catch the error and do something safe instead of crashing.">try/catch</span>. Run your handler. If it explodes, catch the error.</p>
+              <p class="tl">When it explodes, log it and keep going. One bad extension cannot crash pi.</p>
+              <p class="tl">Register the safe wrapper with the underlying emitter, not your original.</p>
+              <p class="tl">Hand back a function that unsubscribes you cleanly. Plug in &mdash; and unplug.</p>
+            </div>
+          </div>
+        </div>
+
+        <p>Now watch the same idea in motion. Below is what actually happens when the model tries to delete <code>node_modules</code> while the permission-gate extension is installed. Press <strong>Next Message</strong> to advance.</p>
+
+        <div class="chat-window animate-in" id="chat-module6-perm">
+          <div class="chat-messages">
+
+            <div class="chat-message" data-msg="0" data-sender="model">
+              <div class="chat-avatar" style="background: var(--color-accent)">M</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-accent)">Model &rarr; Pi</span>
+                <p>Call bash with: <code>rm -rf node_modules</code></p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="1" data-sender="pi" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Pi &rarr; Permission Gate</span>
+                <p>Heads up &mdash; the model wants to call bash. Any objections?</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="2" data-sender="gate" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">G</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Permission Gate</span>
+                <p>Checking the command against my danger patterns&hellip; rm -rf detected.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="3" data-sender="gate" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">G</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Permission Gate &rarr; You</span>
+                <p>&#9888;&#65039; Allow <code>rm -rf node_modules</code>? [Yes / No]</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="4" data-sender="you" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-4)">U</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-4)">You &rarr; Permission Gate</span>
+                <p>No.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="5" data-sender="gate" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-3)">G</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-3)">Permission Gate &rarr; Pi</span>
+                <p>block: true. Reason: Blocked by user.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="6" data-sender="pi" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-actor-2)">P</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-actor-2)">Pi &rarr; Model</span>
+                <p>Tool blocked: user denied permission. Try a different approach.</p>
+              </div>
+            </div>
+
+            <div class="chat-message" data-msg="7" data-sender="model" style="display:none">
+              <div class="chat-avatar" style="background: var(--color-accent)">M</div>
+              <div class="chat-bubble">
+                <span class="chat-sender" style="color: var(--color-accent)">Model</span>
+                <p>Understood. I will ask the user before destructive commands from now on.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="chat-typing" style="display:none">
+            <div class="chat-avatar" id="chat-module6-perm-typing-avatar">?</div>
+            <div class="chat-typing-dots">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+            </div>
+          </div>
+
+          <div class="chat-controls">
+            <button class="btn chat-next-btn">Next Message</button>
+            <button class="btn chat-all-btn">Play All</button>
+            <button class="btn chat-reset-btn">Replay</button>
+            <span class="chat-progress"></span>
+          </div>
+        </div>
+
+        <div class="callout callout-info animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">&#128231;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Quick aside: compaction is hookable too.</strong>
+            <p>Remember the librarian from module 5? She listens on <code>session_before_compact</code>. That means you can write an extension that intercepts compaction and keeps the summary in your team&rsquo;s preferred shape. Same event-bus pattern, different channel.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 5: A tiny custom tool (Snippet C) + Layer toggle -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">A tiny custom tool</h2>
+
+        <p>Permission gates intercept existing tools. The other half of extension power is adding <em>new</em> tools the model can press. Same tool shape from module 3 &mdash; just installed at runtime instead of baked in.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">hello.ts</span>
+<pre><code><span class="code-line"><span class="code-keyword">const</span> helloTool = <span class="code-function">defineTool</span>({</span>
+<span class="code-line">    <span class="code-property">name</span>: <span class="code-string">&quot;hello&quot;</span>,</span>
+<span class="code-line">    <span class="code-property">label</span>: <span class="code-string">&quot;Hello&quot;</span>,</span>
+<span class="code-line">    <span class="code-property">description</span>: <span class="code-string">&quot;A simple greeting tool&quot;</span>,</span>
+<span class="code-line">    <span class="code-property">parameters</span>: Type.<span class="code-function">Object</span>({</span>
+<span class="code-line">        <span class="code-property">name</span>: Type.<span class="code-function">String</span>({ <span class="code-property">description</span>: <span class="code-string">&quot;Name to greet&quot;</span> }),</span>
+<span class="code-line">    }),</span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="code-keyword">async</span> <span class="code-function">execute</span>(_toolCallId, params, _signal, _onUpdate, _ctx) {</span>
+<span class="code-line">        <span class="code-keyword">return</span> {</span>
+<span class="code-line">            <span class="code-property">content</span>: [{ <span class="code-property">type</span>: <span class="code-string">&quot;text&quot;</span>, <span class="code-property">text</span>: <span class="code-string">`Hello, ${params.name}!`</span> }],</span>
+<span class="code-line">            <span class="code-property">details</span>: { <span class="code-property">greeted</span>: params.name },</span>
+<span class="code-line">        };</span>
+<span class="code-line">    },</span>
+<span class="code-line">});</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">export default function</span> (pi: ExtensionAPI) {</span>
+<span class="code-line">    pi.<span class="code-function">registerTool</span>(helloTool);</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Define a tool. <code>defineTool</code> is the same builder pi&rsquo;s built-in tools use.</p>
+              <p class="tl">The model calls it by name. <code>hello</code> is what shows up in the tool list.</p>
+              <p class="tl">Human-readable label, mostly for the UI.</p>
+              <p class="tl">The description the model reads to decide when to use this tool.</p>
+              <p class="tl">The <span class="term" data-definition="A description of the shape of allowed arguments &mdash; what keys exist and what types they hold. Pi uses it to validate the models tool calls before running them.">schema</span> &mdash; what arguments the model is allowed to pass.</p>
+              <p class="tl">One required argument: a name string.</p>
+              <p class="tl">The function that actually runs when the model presses the button.</p>
+              <p class="tl">Return a result object. Content is what the model sees next turn.</p>
+              <p class="tl">Details is structured metadata pi can log or display in the UI.</p>
+              <p class="tl"><strong>The install line.</strong> Same extension shape: a function pi calls at startup. Inside, call <code>registerTool</code> and the model now has a new button.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in">
+          <div class="callout-icon">&#128279;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Same shape, different source.</strong>
+            <p>The <code>bash</code> tool, the <code>read</code> tool, the <code>hello</code> tool above &mdash; they all use this same <code>defineTool</code> structure. The only difference is whether they ship in pi&rsquo;s tarball or live in a file in <code>~/.pi/agent/extensions/</code>. The model cannot tell them apart, and it does not need to.</p>
+          </div>
+        </div>
+
+        <h3 class="screen-subheading" style="margin-top: var(--space-10)">Extensions <span class="term" data-definition="When several pieces stack on each other cleanly, each adding its layer without interfering. Pi extensions compose: install three, all three run.">compose</span>: see what they add</h3>
+
+        <p>Each tab below shows the same prompt &mdash; <em>delete <code>node_modules</code></em> &mdash; with different extensions installed. Watch the experience stack up.</p>
+
+        <div class="layer-demo animate-in" id="layer-pi-stack">
+          <div class="layer-tabs">
+            <button class="layer-tab active" onclick="showLayer('layer-pi-bare', this)">Pi alone</button>
+            <button class="layer-tab" onclick="showLayer('layer-pi-gate', this)">+ permission gate</button>
+            <button class="layer-tab" onclick="showLayer('layer-pi-full', this)">+ git checkpoint + slack</button>
+          </div>
+
+          <div class="layer-viewport">
+            <div class="layer" id="layer-pi-bare" style="display:block">
+              <div class="layer-term">
+                <div class="term-line"><span class="term-prompt">&rsaquo;</span> delete the node_modules folder</div>
+                <div class="term-line term-model">model: ok, calling bash with <code>rm -rf node_modules</code></div>
+                <div class="term-line term-tool">bash: removed 87,432 files. done.</div>
+              </div>
+              <p class="layer-description">Bare pi. The model asks for bash, pi runs it. No prompt, no checkpoint, no notification. <em>Just like that.</em></p>
+            </div>
+
+            <div class="layer" id="layer-pi-gate" style="display:none">
+              <div class="layer-term">
+                <div class="term-line"><span class="term-prompt">&rsaquo;</span> delete the node_modules folder</div>
+                <div class="term-line term-model">model: ok, calling bash with <code>rm -rf node_modules</code></div>
+                <div class="term-line term-gate">&#9888;&#65039; Dangerous command: <code>rm -rf node_modules</code> &mdash; Allow? [Yes / No]</div>
+                <div class="term-line term-user">you: No</div>
+                <div class="term-line term-tool">bash: blocked by user.</div>
+              </div>
+              <p class="layer-description">Permission gate inserted itself between model and bash. Same model, same bash tool &mdash; just a new voice in the room.</p>
+            </div>
+
+            <div class="layer" id="layer-pi-full" style="display:none">
+              <div class="layer-term">
+                <div class="term-line"><span class="term-prompt">&rsaquo;</span> delete the node_modules folder</div>
+                <div class="term-line term-checkpoint">git-checkpoint: stashed working tree as <code>pi/checkpoint-3a7f</code></div>
+                <div class="term-line term-model">model: ok, calling bash with <code>rm -rf node_modules</code></div>
+                <div class="term-line term-gate">&#9888;&#65039; Dangerous command &mdash; Allow? [Yes / No]</div>
+                <div class="term-line term-user">you: Yes</div>
+                <div class="term-line term-tool">bash: removed 87,432 files. done.</div>
+                <div class="term-line term-slack">slack-notify: posted to #pi-alerts &mdash; &ldquo;long task finished (4m12s)&rdquo;</div>
+              </div>
+              <p class="layer-description">Three extensions, three event subscriptions, zero coordination needed. Each one runs when its event fires. <strong>That is composition.</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <style>
+          .layer-demo {
+            background: var(--color-surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            margin: var(--space-6) 0;
+          }
+          .layer-tabs {
+            display: flex;
+            background: var(--color-bg-warm);
+            border-bottom: 1px solid var(--color-border);
+          }
+          .layer-tab {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-family: var(--font-body);
+            font-size: var(--text-sm);
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all var(--duration-fast);
+          }
+          .layer-tab:hover { color: var(--color-text); }
+          .layer-tab.active {
+            color: var(--color-accent);
+            border-bottom-color: var(--color-accent);
+            background: var(--color-surface);
+          }
+          .layer-viewport { padding: var(--space-6); }
+          .layer-description {
+            margin-top: var(--space-4);
+            color: var(--color-text-secondary);
+            font-size: var(--text-sm);
+            line-height: var(--leading-normal);
+          }
+          .layer-term {
+            background: var(--color-bg-code);
+            color: #CDD6F4;
+            padding: var(--space-4);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: var(--text-sm);
+            line-height: 1.8;
+          }
+          .term-line { white-space: pre-wrap; }
+          .term-line code {
+            background: rgba(255,255,255,0.08);
+            padding: 1px 6px;
+            border-radius: 3px;
+            color: #F9E2AF;
+          }
+          .term-prompt { color: var(--color-accent); font-weight: 700; margin-right: 6px; }
+          .term-model { color: #89B4FA; }
+          .term-tool { color: #A6E3A1; }
+          .term-gate { color: #F9E2AF; }
+          .term-user { color: #CBA6F7; }
+          .term-checkpoint { color: #94E2D5; }
+          .term-slack { color: #F5C2E7; }
+          @media (max-width: 600px) {
+            .layer-tabs { flex-direction: column; }
+            .layer-tab { border-bottom: 1px solid var(--color-border); }
+            .layer-tab.active { border-bottom-color: var(--color-accent); }
+          }
+        </style>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 6: What you can build (pattern cards) -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">What you can build</h2>
+
+        <p>These are not theoretical. Every card below corresponds to a file that already lives in <code>packages/coding-agent/examples/extensions/</code>. Treat them as recipes.</p>
+
+        <div class="pattern-cards animate-in">
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+            <div class="pattern-icon" style="background: var(--color-accent)">&#128274;</div>
+            <h4 class="pattern-title">Permission gates</h4>
+            <p class="pattern-desc">Confirm before destructive commands. The one you just read. Hook <code>tool_call</code>, inspect, decide.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-5)">
+            <div class="pattern-icon" style="background: var(--color-actor-5)">&#127919;</div>
+            <h4 class="pattern-title">Git checkpointing</h4>
+            <p class="pattern-desc">Auto-stash your working tree at every turn so you can always roll back to the moment before pi touched anything.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#128241;</div>
+            <h4 class="pattern-title">Slack notifier</h4>
+            <p class="pattern-desc">Ping a Slack channel when a long task finishes. Useful when pi has been chewing on something for ten minutes and you stepped away for coffee.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-3)">
+            <div class="pattern-icon" style="background: var(--color-actor-3)">&#128218;</div>
+            <h4 class="pattern-title">Custom compaction</h4>
+            <p class="pattern-desc">Hook <code>session_before_compact</code> and shape the summary your team prefers &mdash; bullets, JSON, whatever. The librarian listens to you now.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-4)">
+            <div class="pattern-icon" style="background: var(--color-actor-4)">&#128203;</div>
+            <h4 class="pattern-title">Status lines &amp; footers</h4>
+            <p class="pattern-desc">Show the current branch, token count, project name &mdash; anything &mdash; in the TUI&rsquo;s status bar. Custom dashboard, no fork.</p>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-accent-muted)">
+            <div class="pattern-icon" style="background: var(--color-accent-muted)">&#127918;</div>
+            <h4 class="pattern-title">Games while you wait</h4>
+            <p class="pattern-desc">Yes, really. <code>snake.ts</code> and a doom-overlay both ship in the examples folder. Because nothing stops you.</p>
+          </div>
+
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-10)">
+          <div class="callout-icon">&#129513;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Pi is a thin layer that lets you treat AI coding tooling like Lego.</strong>
+            <p>Every annoying thing &mdash; confirmation popups, todo lists, status bars, sub-agents, plan mode &mdash; is a feature you can install or skip. The &ldquo;right&rdquo; setup is the one you build. <span class="term" data-definition="A modular building system where every brick has standardized connectors. Pi treats itself like Lego &mdash; small, interchangeable pieces.">Lego</span>, not Lincoln Logs.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 7: Quiz -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your extension intuition</h2>
+
+        <p>Four scenarios. For each, pick the smallest, cleanest plug for the job. Skill, template, or extension &mdash; the right answer depends on what kind of thing you are adding.</p>
+
+        <div class="quiz-container animate-in" id="quiz-module6">
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right. A skill is just a markdown file the model reads on demand. Drop STYLE.md into ~/.pi/agent/skills/, mark it auto-discoverable, and the model will reach for it when relevant. An extension would be overkill for static text."
+               data-explanation-wrong="Think about what you are adding. Static instructions the model should read &mdash; not code that needs to run. That is a skill, not an extension.">
+            <h3 class="quiz-question">You want every pi session, across your team, to read a <code>STYLE.md</code> file with your code conventions and follow them. Which plug fits best?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>An extension that injects STYLE.md into every prompt.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A prompt template that pastes STYLE.md when invoked.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A skill &mdash; STYLE.md dropped in <code>~/.pi/agent/skills/</code>, auto-discoverable.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A fork of pi with the rules baked in.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly. Prompt templates are parameterized markdown invoked by name. You type /review security and pi expands it. No code, no events. The smallest plug for a repeated prompt."
+               data-explanation-wrong="A repeated prompt with one slot in it is the textbook template case. Templates exist exactly so you do not have to retype boilerplate or write code for something so small.">
+            <h3 class="quiz-question">You have a saved prompt: <em>&ldquo;review the diff and look for: $1.&rdquo;</em> You want to type <code>/review security</code> and have pi expand it. Which plug?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A skill containing the prompt text.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A prompt template with <code>$1</code> as the placeholder.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>An extension that listens for <code>/review</code> in the chat input.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A bash alias that runs <code>pi review</code>.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-d"
+               data-explanation-right="Yes. Your team has a private Postgres. The model cannot teleport SQL into it &mdash; it needs a button to press. Write an extension that registers a query-db tool and the model can call it like any other tool. Do not try to teach SQL inline every turn; make it a tool."
+               data-explanation-wrong="Re-teaching the model how to talk to your database every prompt is the kind of thing tools exist to fix. An extension that exposes one query-db tool is the canonical solution.">
+            <h3 class="quiz-question">Your team uses a private Postgres database and you want pi to be able to query it. What is the cleanest path?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A skill with example SQL queries; let the model copy them.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>A prompt template <code>/query &lt;sql&gt;</code> that runs <code>psql</code> via bash.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Wait for pi to add native Postgres support.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>An extension that registers a <code>query-db</code> tool the model can call.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Right. The event bus wraps every handler in try/catch. Your extension throws, pi logs the error, and the next handler runs as if nothing happened. This is why pi can safely run third-party extensions you did not write yourself."
+               data-explanation-wrong="Re-read the safe-handler snippet. The whole point of wrapping every handler in try/catch is that one bad extension cannot bring the session down. Isolation is the feature.">
+            <h3 class="quiz-question">You wrote an extension that crashes on a specific event. Will it bring down the whole pi session?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Yes &mdash; an uncaught error in any handler kills the session.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>No &mdash; the event bus wraps each handler in try/catch and logs the error.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Only if the extension was registered last.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Only if it crashes during compaction.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module6')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module6')">Try Again</button>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCREEN 8: Course wrap -->
+      <!-- ============================================================ -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">You are inside now</h2>
+
+        <p>You started this course not knowing what a harness was. You finish it with a map of one. Here is the whole tour, in one breath:</p>
+
+        <div class="step-cards animate-in">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Module 1 &mdash; The Switchboard.</strong>
+              <p>Pi is not the AI. Pi is the routing layer that owns the turn loop &mdash; prompt in, model called, tool run, repeat.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Module 2 &mdash; The Cast.</strong>
+              <p>AgentSession, Agent, Model, Tools, modes. A film crew with one director, one star, and a crystal-clear chain of command.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Module 3 &mdash; Tools.</strong>
+              <p>The model is a DJ behind glass. Tools are the buttons it presses to touch the world. <code>read</code>, <code>write</code>, <code>edit</code>, <code>bash</code> &mdash; everything else builds on these four.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>Module 4 &mdash; Memory.</strong>
+              <p>Pi remembers in a tree, not a list. Branch off, retry, jump back to any node. Your conversation is a choose-your-own-adventure book that never throws pages away.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <strong>Module 5 &mdash; Compaction.</strong>
+              <p>When context runs dry, a librarian summarizes the old conversation into a single &ldquo;previously, on this session&hellip;&rdquo; note. You trade detail for headroom &mdash; consciously.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">6</div>
+            <div class="step-body">
+              <strong>Module 6 &mdash; Extensions.</strong>
+              <p>Pi is a power strip. Skills, templates, and extensions are the things you plug in. Anything other tools bake in, you can install or skip.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-10)">
+          <div class="callout-icon">&#127881;</div>
+          <div class="callout-content">
+            <strong class="callout-title">What you can do now</strong>
+            <p>When an AI coding tool surprises you from here on, you have a map. You know how a prompt is routed, who runs it, how tools touch the disk, how memory branches, what compaction trades away, and where to plug in to change any of it. That is not user knowledge. That is <em>builder</em> knowledge.</p>
+          </div>
+        </div>
+
+        <div class="wrap-next animate-in">
+          <h3 class="screen-subheading">Your next move</h3>
+          <p>Open <code>packages/coding-agent/examples/extensions/</code>. Read <code>permission-gate.ts</code> again with fresh eyes &mdash; this time you know the API. Then write the smallest extension that scratches your own itch. A status line. A confirmation. A Slack ping. Thirty lines is plenty.</p>
+          <p style="margin-top: var(--space-4)"><strong>Welcome to the inside.</strong></p>
+        </div>
+
+        <style>
+          .wrap-next {
+            margin-top: var(--space-10);
+            padding: var(--space-6) var(--space-8);
+            background: var(--color-surface-warm);
+            border-left: 3px solid var(--color-accent);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+          }
+          .wrap-next p { color: var(--color-text-secondary); line-height: var(--leading-normal); }
+          .wrap-next p strong { color: var(--color-accent); font-size: var(--text-lg); }
+        </style>
+      </section>
+
+    </div>
+  </div>
+</section>
