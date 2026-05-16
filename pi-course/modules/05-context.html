@@ -1,0 +1,652 @@
+<section class="module" id="module-5" style="background: var(--color-bg-warm)">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">When Context Runs Dry</h1>
+      <p class="module-subtitle">A reporter&apos;s notebook only has so many pages. Here is how pi tears out the old ones without losing the story.</p>
+    </header>
+
+    <div class="module-body">
+
+      <!-- =========================================================
+           SCREEN 1 — The context window (the notebook metaphor)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">The reporter with a finite notebook</h2>
+
+        <p>Imagine a field reporter on a two-week assignment with one fixed-size notebook &mdash; say 200 pages. Around page 180 they hit a wall: the notebook is almost full, but they still need everything they wrote down.</p>
+
+        <p>So they do something clever. They tear out the first 150 pages, sit down for ten minutes, and replace them with <em>one</em> page of bullet-pointed highlights. The most recent 50 pages of detailed notes stay untouched. New entries continue from the summary page forward. The notebook keeps working.</p>
+
+        <!-- Hero visual: the notebook before and after -->
+        <div class="notebook-hero animate-in" aria-hidden="true">
+          <div class="nb-card nb-before">
+            <div class="nb-label">BEFORE</div>
+            <div class="nb-pages">
+              <div class="nb-page nb-page-old">page 1</div>
+              <div class="nb-page nb-page-old">page 2</div>
+              <div class="nb-page nb-page-old">page 3</div>
+              <div class="nb-page nb-page-old">&hellip;</div>
+              <div class="nb-page nb-page-old">page 150</div>
+              <div class="nb-page nb-page-recent">page 151</div>
+              <div class="nb-page nb-page-recent">&hellip;</div>
+              <div class="nb-page nb-page-recent">page 200</div>
+            </div>
+            <div class="nb-caption">Notebook nearly full. Cannot fit another interview.</div>
+          </div>
+          <div class="nb-arrow">&rarr;</div>
+          <div class="nb-card nb-after">
+            <div class="nb-label">AFTER</div>
+            <div class="nb-pages">
+              <div class="nb-page nb-page-summary">
+                <div class="nb-summary-title">SUMMARY</div>
+                <div class="nb-summary-line">&bull; Met source A: said X</div>
+                <div class="nb-summary-line">&bull; Visited site B: saw Y</div>
+                <div class="nb-summary-line">&bull; Decided to follow lead Z</div>
+              </div>
+              <div class="nb-page nb-page-recent">page 151</div>
+              <div class="nb-page nb-page-recent">&hellip;</div>
+              <div class="nb-page nb-page-recent">page 200</div>
+              <div class="nb-page nb-page-blank">blank</div>
+              <div class="nb-page nb-page-blank">blank</div>
+              <div class="nb-page nb-page-blank">blank</div>
+            </div>
+            <div class="nb-caption">150 pages compressed into 1. Plenty of room to keep working.</div>
+          </div>
+        </div>
+
+        <p>This is exactly what pi does to the model&apos;s memory. Every language model has a <span class="term" data-definition="The maximum amount of text a language model can consider at once, measured in tokens. Anthropic&apos;s Sonnet has about 200,000 tokens; smaller models have less. When a conversation goes over, the model cannot respond.">context window</span> &mdash; a hard limit on how much text it can look at in a single call, measured in <span class="term" data-definition="A piece of text the model counts as one unit. Roughly a word or word-piece. &lsquo;Hello world&rsquo; is about 2 tokens. Long file paths can be 5 to 10 tokens each.">tokens</span>. Sonnet&apos;s notebook is around 200,000 tokens long. Smaller models have smaller notebooks.</p>
+
+        <div class="budget-bar animate-in">
+          <div class="budget-label">SONNET CONTEXT WINDOW &mdash; ~200,000 tokens</div>
+          <div class="budget-track">
+            <div class="budget-seg budget-system" style="width: 4%"><span>system</span></div>
+            <div class="budget-seg budget-history" style="width: 64%"><span>conversation history</span></div>
+            <div class="budget-seg budget-tools" style="width: 18%"><span>tool results</span></div>
+            <div class="budget-seg budget-reserve" style="width: 8%"><span>reserve</span></div>
+            <div class="budget-seg budget-free" style="width: 6%"><span>free</span></div>
+          </div>
+          <div class="budget-foot">Every byte of every message counts. Blow past the line on the right and the API rejects the request.</div>
+        </div>
+
+        <div class="callout callout-warning animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">&#9888;</div>
+          <div class="callout-content">
+            <strong class="callout-title">The original messages are not deleted from the file.</strong>
+            <p>They are just hidden from the model. You can always scroll back through <code>/tree</code> to see what was said before compaction. Compaction is about what the model sees, not what is on disk.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 2 — Two triggers, two responses (Snippet A)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Two triggers, two responses</h2>
+
+        <p>Pi runs <span class="term" data-definition="Pi&apos;s process of replacing old messages with a short summary so the conversation can keep going without blowing past the context window.">compaction</span> in two situations &mdash; one before the wall, one after. Think of it as a careful reporter who tries to summarise before the notebook fills up, but who also knows how to recover if they accidentally write past the last page.</p>
+
+        <div class="pattern-cards animate-in">
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2)">
+            <div class="pattern-icon" style="background: var(--color-actor-2)">&#9201;</div>
+            <h4 class="pattern-title">Threshold compaction</h4>
+            <p class="pattern-desc"><strong><span class="term" data-definition="Doing something before a problem happens. Proactive compaction runs before the context window fills up, so the request never crashes in the first place.">Proactive</span>.</strong> After each turn, pi checks token usage. If we are within the safety <span class="term" data-definition="A safety buffer of tokens pi keeps unused, so the model has room to reply even when the conversation is near the limit. Default 16,000.">reserve</span> of the window, compact <em>before</em> the next call so we never crash.</p>
+            <div class="pattern-example"><span class="pattern-example-label">TRIGGER</span><code>context &gt; window &minus; 16K</code></div>
+          </div>
+
+          <div class="pattern-card" style="border-top: 3px solid var(--color-actor-1)">
+            <div class="pattern-icon" style="background: var(--color-actor-1)">&#128297;</div>
+            <h4 class="pattern-title">Overflow recovery</h4>
+            <p class="pattern-desc"><strong><span class="term" data-definition="Doing something after a problem has already happened. Reactive compaction kicks in when the model has already crashed with &lsquo;context too large&rsquo; and recovers from it.">Reactive</span>.</strong> If the model returns an &ldquo;out of context&rdquo; error anyway, pi removes the error, compacts the history, and retries the request automatically.</p>
+            <div class="pattern-example"><span class="pattern-example-label">TRIGGER</span><code>model returns overflow error</code></div>
+          </div>
+        </div>
+
+        <p style="margin-top: var(--space-8)">The proactive check is one of the smallest, sharpest pieces of code in the whole compaction system. Three lines.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+<pre><code><span class="code-line"><span class="code-keyword">export function</span> <span class="code-function">shouldCompact</span>(contextTokens: <span class="code-keyword">number</span>, contextWindow: <span class="code-keyword">number</span>, settings: CompactionSettings): <span class="code-keyword">boolean</span> {</span>
+<span class="code-line">    <span class="code-keyword">if</span> (!settings.enabled) <span class="code-keyword">return false</span>;</span>
+<span class="code-line">    <span class="code-keyword">return</span> contextTokens &gt; contextWindow - settings.reserveTokens;</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">A simple <span class="term" data-definition="A named chunk of code that takes some inputs and produces an output. shouldCompact takes three inputs and produces yes or no.">function</span> that answers yes or no: do we need to compact right now?</p>
+              <p class="tl">If the user turned auto-compaction off in their settings, never trigger it.</p>
+              <p class="tl">Otherwise, return true whenever the tokens we are using have crossed past the limit minus a safety reserve. The reserve (default 16,000 tokens) leaves room for the model&apos;s reply.</p>
+              <p class="tl">End of function. The whole decision fits in three lines because pi only needs to ask one question.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 3 — What compaction actually does (steps + Snippet B + Snippet C)
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">What compaction actually does</h2>
+
+        <p>When <code>shouldCompact</code> says yes, pi runs a five-step ritual. The goal: replace a long stretch of old messages with one compact entry that the model can still reason from.</p>
+
+        <div class="step-cards animate-in">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Find a cut point</strong>
+              <p>Walk backward from the newest message until about 20,000 tokens of recent context are kept. Everything older than the cut will be summarised.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>Bundle the older messages</strong>
+              <p>Everything before the cut gets grouped into one chunk &mdash; the pages pi is about to tear out.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Ask the model to <span class="term" data-definition="Read a long piece of text and produce a shorter version that captures the important parts. The model is good at this; pi delegates it.">summarise</span></strong>
+              <p>Pi makes a separate <span class="term" data-definition="A call to a Large Language Model &mdash; the AI service that does the actual reasoning. Each call has its own cost and latency. Pi uses one just to summarise the old messages.">LLM call</span>: &ldquo;summarise this conversation, preserving key decisions and file changes.&rdquo;</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <strong>Track which files were touched</strong>
+              <p>Separately, pi scans the compacted messages for tool calls and builds two lists: files that were read, and files that were modified.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <strong>Write a CompactionEntry and replace the past</strong>
+              <p>Pi stores the summary plus the file lists as a single entry in the session tree. Next turn the model sees: system prompt + summary entry + last 20,000 tokens. Crisis averted.</p>
+            </div>
+          </div>
+        </div>
+
+        <p style="margin-top: var(--space-10)">The file-tracking part has its own little shape. When pi compacts, it does not just produce prose &mdash; it also remembers exactly which files were touched in the compacted section.</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+<pre><code><span class="code-line"><span class="code-keyword">export interface</span> CompactionDetails {</span>
+<span class="code-line">    readFiles: <span class="code-keyword">string</span>[];</span>
+<span class="code-line">    modifiedFiles: <span class="code-keyword">string</span>[];</span>
+<span class="code-line">}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl">Declare a shape called <code>CompactionDetails</code>. This is the structured side-car that travels with the prose summary.</p>
+              <p class="tl"><code>readFiles</code>: a list of file paths the agent looked at in the chunk being summarised.</p>
+              <p class="tl"><code>modifiedFiles</code>: a list of file paths the agent actually changed.</p>
+              <p class="tl">End of shape. Now even after the detailed messages are gone, the model &mdash; and you &mdash; can see what was worked on.</p>
+            </div>
+          </div>
+        </div>
+
+        <p style="margin-top: var(--space-10)">Put it all together and a real CompactionEntry on disk looks like this. This is one line in the session&apos;s <span class="term" data-definition="JSON Lines &mdash; a plain-text file where each line is one complete JSON object. Pi&apos;s session files are JSONL: each line is a message, a tool result, or a compaction entry.">JSONL</span> file:</p>
+
+        <div class="translation-block animate-in">
+          <div class="translation-code">
+            <span class="translation-label">CODE</span>
+<pre><code><span class="code-line">{<span class="code-property">&quot;type&quot;</span>:<span class="code-string">&quot;compaction&quot;</span>,<span class="code-property">&quot;id&quot;</span>:<span class="code-string">&quot;cpt-1&quot;</span>,<span class="code-property">&quot;parentId&quot;</span>:<span class="code-string">&quot;msg-42&quot;</span>,<span class="code-property">&quot;timestamp&quot;</span>:<span class="code-string">&quot;2025-05-16T15:20:00Z&quot;</span>,<span class="code-property">&quot;summary&quot;</span>:<span class="code-string">&quot;User wanted to migrate from SQLite to Postgres. We discussed schema differences, agreed to keep table names but change column types. Read schema.sql, migrations.sql, db.ts. Modified db.ts and added migrations/2025-05-16-init.sql. Final decision: use jsonb for the metadata column.&quot;</span>,<span class="code-property">&quot;firstKeptEntryId&quot;</span>:<span class="code-string">&quot;msg-32&quot;</span>,<span class="code-property">&quot;tokensBefore&quot;</span>:<span class="code-number">58000</span>,<span class="code-property">&quot;details&quot;</span>:{<span class="code-property">&quot;readFiles&quot;</span>:[<span class="code-string">&quot;schema.sql&quot;</span>,<span class="code-string">&quot;migrations.sql&quot;</span>,<span class="code-string">&quot;db.ts&quot;</span>],<span class="code-property">&quot;modifiedFiles&quot;</span>:[<span class="code-string">&quot;db.ts&quot;</span>,<span class="code-string">&quot;migrations/2025-05-16-init.sql&quot;</span>]}}</span></code></pre>
+          </div>
+          <div class="translation-english">
+            <span class="translation-label">PLAIN ENGLISH</span>
+            <div class="translation-lines">
+              <p class="tl"><code>type: &quot;compaction&quot;</code> &mdash; this entry is not a regular message, it is a summary node.</p>
+              <p class="tl"><code>id</code> and <code>parentId</code> wire this entry into the session tree from Module 4 &mdash; it has a parent message just like any other node.</p>
+              <p class="tl"><code>summary</code> is the prose the summarising model produced. Notice it captures the <em>why</em>: a <span class="term" data-definition="A scripted change to a database&apos;s structure &mdash; adding a table, changing a column, etc.">migration</span> from SQLite to Postgres, with the agreed-upon decision about <code>jsonb</code>.</p>
+              <p class="tl"><code>firstKeptEntryId</code> is the boundary &mdash; the first message that was <em>not</em> compacted. Everything from <code>msg-32</code> onward is still visible to the model in full detail.</p>
+              <p class="tl"><code>tokensBefore: 58000</code> tells us how big the context was when compaction ran. Useful for understanding how aggressive the trim was.</p>
+              <p class="tl"><code>details.readFiles</code> and <code>details.modifiedFiles</code> are the file lists from the previous snippet &mdash; the structured trace of what was touched.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-8)">
+          <div class="callout-icon">&#128161;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Compaction is lossy on purpose.</strong>
+            <p>The whole point is to throw information away so the conversation can continue. The model will sometimes lose a detail &mdash; that is the trade. It is also why you can manually trigger compaction with custom instructions like <code>/compact &quot;preserve the API contract&quot;</code> to keep what matters to you.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 4 — Data flow animation
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Anatomy of a compaction</h2>
+
+        <p>Click through the seven steps that turn a bloated history into a single tidy entry. The same four <span class="term" data-definition="The named participants in the data flow. Here: the old messages, pi itself, the summarising model, and the resulting CompactionEntry.">actors</span> appear in every compaction, every time.</p>
+
+        <div class="flow-animation animate-in" data-steps='[
+          {"highlight":"flow-actor-2","label":"Pi checks token usage after each turn"},
+          {"highlight":"flow-actor-1","label":"Threshold crossed - pi marks the cut point","packet":true,"from":"actor-2","to":"actor-1"},
+          {"highlight":"flow-actor-3","label":"Pi sends the old chunk to the model with a summarize instruction","packet":true,"from":"actor-1","to":"actor-3"},
+          {"highlight":"flow-actor-3","label":"Model writes a structured summary"},
+          {"highlight":"flow-actor-2","label":"Pi extracts which files were read or modified","packet":true,"from":"actor-3","to":"actor-2"},
+          {"highlight":"flow-actor-4","label":"Pi writes a single CompactionEntry to the session file","packet":true,"from":"actor-2","to":"actor-4"},
+          {"highlight":"flow-actor-4","label":"Next turn, the model sees the summary plus the recent messages - no more overflow"}
+        ]'>
+          <div class="flow-actors">
+            <div class="flow-actor" id="flow-actor-1">
+              <div class="flow-actor-icon">&#128214;</div>
+              <span>Old messages</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-2">
+              <div class="flow-actor-icon">&#9881;</div>
+              <span>Pi</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-3">
+              <div class="flow-actor-icon">&#129504;</div>
+              <span>The Model</span>
+            </div>
+            <div class="flow-actor" id="flow-actor-4">
+              <div class="flow-actor-icon">&#128220;</div>
+              <span>CompactionEntry</span>
+            </div>
+          </div>
+
+          <div class="flow-packet" id="flow-packet"></div>
+
+          <div class="flow-step-label" id="flow-label">Click &ldquo;Next Step&rdquo; to begin</div>
+
+          <div class="flow-controls">
+            <button class="btn flow-next-btn">Next Step</button>
+            <button class="btn flow-reset-btn">Restart</button>
+            <span class="flow-progress"></span>
+          </div>
+        </div>
+
+        <!-- Before/after token budget comparison -->
+        <div class="ba-compare animate-in">
+          <div class="ba-col">
+            <div class="ba-label">BEFORE COMPACTION</div>
+            <div class="ba-bar">
+              <div class="ba-seg ba-old" style="width: 75%"><span>60K tokens of old messages</span></div>
+              <div class="ba-seg ba-recent" style="width: 25%"><span>20K recent</span></div>
+            </div>
+            <div class="ba-total">total: ~80,000 tokens &mdash; pushing the limit</div>
+          </div>
+          <div class="ba-col">
+            <div class="ba-label">AFTER COMPACTION</div>
+            <div class="ba-bar">
+              <div class="ba-seg ba-summary" style="width: 9%"><span>2K summary</span></div>
+              <div class="ba-seg ba-recent" style="width: 25%"><span>20K recent</span></div>
+              <div class="ba-seg ba-empty" style="width: 66%"><span>plenty of room</span></div>
+            </div>
+            <div class="ba-total">total: ~22,000 tokens &mdash; back in the safe zone</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           SCREEN 5 — Quiz
+           ========================================================= -->
+      <section class="screen animate-in">
+        <h2 class="screen-heading">Check your understanding</h2>
+
+        <p>Four scenarios from real long-running pi sessions. Each tests when to spot compaction in the wild &mdash; and how to steer it.</p>
+
+        <div class="quiz-container" id="quiz-module5">
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Exactly. The early messages got summarised, and the summary did not include that exact path. Re-state the path now, or use /compact with custom instructions next time: /compact &quot;preserve the schema.sql path.&quot; That tells the summariser what is non-negotiable."
+               data-explanation-wrong="Not quite. The model did not get worse or distracted &mdash; it literally cannot see those early messages anymore. Think about what is happening at the seam between old and new.">
+            <h3 class="quiz-question">1. An hour into a debugging session, pi suddenly cannot remember the file path you mentioned at the start. What likely happened?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model is &ldquo;tired&rdquo; and getting sloppy late in a session.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Compaction ran. The path was in the early messages, those got summarised, and the summary did not include that exact detail.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Pi deleted the messages from disk to save space.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model is hallucinating a different file.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-c"
+               data-explanation-right="Right. /compact with a quoted instruction is a normal pi command, and the instruction gets passed straight into the summarisation prompt. It is the cleanest way to make sure the summary keeps the bits you care about &mdash; API contracts, migration order, naming conventions, whatever."
+               data-explanation-wrong="Not quite. You do not have to wait for the wall, and you do not have to manually copy-paste anything. Pi has a built-in way to trigger compaction with custom instructions.">
+            <h3 class="quiz-question">2. You are about to run a complicated <span class="term" data-definition="The blueprint of a database: what tables exist, what columns each one has.">schema</span> migration and you want the summary so far to be carefully worded &mdash; capturing every API contract you agreed on. How would you do that?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Wait for pi to compact on its own and hope the summariser figures out what is important.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Copy the entire conversation into a note app and paste it back in chunks.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Run <code>/compact &quot;preserve all API contracts and the agreed-on migration order&quot;</code>. This passes custom instructions to the summarisation call.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Disable compaction entirely and let the request crash.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-b"
+               data-explanation-right="Yes. A 100K-token file alone fills half the window, and once tool results, the system prompt, and a few back-and-forths land, you are already pushing the limit. Reading the file in chunks (or splitting it before pasting) lets pi work on each piece with room to think."
+               data-explanation-wrong="Not quite. Pi is not magic about huge files &mdash; every token of that file counts toward the same budget as everything else. The window is not infinite, even for one big paste.">
+            <h3 class="quiz-question">3. You paste a 100,000-token file into pi and ask it to refactor. What is likely to happen?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Pi handles it transparently &mdash; big files have their own special path.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Pi will fill most of the context window with the file alone, leaving little room for the model to think or call tools. Better to ask pi to read the file in chunks, or split it before pasting.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Pi compresses the file automatically, so it costs nothing.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>The model reads it instantly because it is &ldquo;just one message.&rdquo;</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <div class="quiz-question-block"
+               data-correct="option-a"
+               data-explanation-right="Right. Compaction is hookable for exactly this reason &mdash; details exists so extensions can add their own structured trace alongside readFiles and modifiedFiles. Module 6 will show how the event bus and extensions snap together."
+               data-explanation-wrong="Not quite. You do not need to fork pi or hand-edit session files. Pi&apos;s compaction system was designed to be extended &mdash; there is an official place to hook in.">
+            <h3 class="quiz-question">4. You have added a Postgres extension to pi that exposes some new tools, and you want compaction to preserve information about which database tables were touched. What is the cleanest way to do that?</h3>
+            <div class="quiz-options">
+              <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Write an extension that <span class="term" data-definition="A point in pi&apos;s lifecycle where extensions can run code. session_before_compact is a hook that fires before pi runs compaction; an extension can listen for it and customize the behavior.">hooks</span> <code>session_before_compact</code> to add database-table tracking alongside file tracking. Compaction is hookable &mdash; <code>details</code> exists for exactly this.</span>
+              </button>
+              <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Fork pi, modify the compaction source, and maintain your own build.</span>
+              </button>
+              <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Hand-edit the JSONL session file after each compaction.</span>
+              </button>
+              <button class="quiz-option" data-value="option-d" onclick="selectOption(this)">
+                <div class="quiz-option-radio"></div>
+                <span>Put the table names in the system prompt and hope the model remembers.</span>
+              </button>
+            </div>
+            <div class="quiz-feedback"></div>
+          </div>
+
+          <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')">Check Answers</button>
+          <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')">Try Again</button>
+        </div>
+
+        <div class="callout callout-accent animate-in" style="margin-top: var(--space-10)">
+          <div class="callout-icon">&rarr;</div>
+          <div class="callout-content">
+            <strong class="callout-title">Coming up: making pi yours</strong>
+            <p>We have seen the machinery &mdash; the switchboard, the cast, the tools, the tree, the notebook trick. Module 6 covers extensions, <span class="term" data-definition="A bundle of instructions and tools you can give pi to make it good at a specific task. Skills layer on top of extensions.">skills</span>, and the event bus &mdash; pi&apos;s surface for being modified. It is surprisingly small.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Module-local styles for visuals used only in module 5 -->
+  <style>
+    /* Notebook hero */
+    #module-5 .notebook-hero {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: var(--space-5);
+      align-items: stretch;
+      margin: var(--space-8) 0;
+    }
+    #module-5 .nb-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+    }
+    #module-5 .nb-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.12em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+      text-align: center;
+    }
+    #module-5 .nb-pages {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      padding: var(--space-3);
+      background: var(--color-surface-warm);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border-light);
+    }
+    #module-5 .nb-page {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px var(--space-3);
+      border-radius: 4px;
+      color: var(--color-text-secondary);
+      background: #fff;
+      border-left: 3px solid var(--color-border);
+    }
+    #module-5 .nb-page-old {
+      background: #FBEDE8;
+      border-left-color: var(--color-accent-muted);
+      color: var(--color-text-secondary);
+      opacity: 0.85;
+    }
+    #module-5 .nb-page-recent {
+      background: #E4F2F7;
+      border-left-color: var(--color-info);
+      color: var(--color-info);
+      font-weight: 500;
+    }
+    #module-5 .nb-page-blank {
+      background: repeating-linear-gradient(
+        135deg,
+        #fff 0 6px,
+        #f5f0e8 6px 12px
+      );
+      color: var(--color-text-muted);
+      font-style: italic;
+      border-left-color: var(--color-border-light);
+    }
+    #module-5 .nb-page-summary {
+      background: var(--color-accent-light);
+      border-left: 3px solid var(--color-accent);
+      padding: var(--space-3);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+    }
+    #module-5 .nb-summary-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--color-accent);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    #module-5 .nb-summary-line {
+      color: var(--color-text);
+      line-height: 1.4;
+    }
+    #module-5 .nb-caption {
+      margin-top: var(--space-3);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      text-align: center;
+      font-style: italic;
+    }
+    #module-5 .nb-arrow {
+      font-size: 2rem;
+      color: var(--color-accent);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Budget bar */
+    #module-5 .budget-bar {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-sm);
+      margin: var(--space-8) 0;
+    }
+    #module-5 .budget-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+    #module-5 .budget-track {
+      display: flex;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+    #module-5 .budget-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      color: #fff;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    #module-5 .budget-seg span {
+      padding: 0 var(--space-2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #module-5 .budget-system  { background: var(--color-actor-3); }
+    #module-5 .budget-history { background: var(--color-actor-2); }
+    #module-5 .budget-tools   { background: var(--color-actor-4); color: var(--color-text); }
+    #module-5 .budget-reserve { background: var(--color-actor-1); }
+    #module-5 .budget-free    { background: var(--color-border); color: var(--color-text-muted); }
+    #module-5 .budget-foot {
+      margin-top: var(--space-3);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    /* Before/after compare bars */
+    #module-5 .ba-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-5);
+      margin: var(--space-8) 0 var(--space-4);
+    }
+    #module-5 .ba-col {
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-sm);
+    }
+    #module-5 .ba-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.12em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+    #module-5 .ba-bar {
+      display: flex;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+    #module-5 .ba-seg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #fff;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    #module-5 .ba-seg span {
+      padding: 0 var(--space-2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #module-5 .ba-old     { background: var(--color-accent-muted); }
+    #module-5 .ba-recent  { background: var(--color-info); }
+    #module-5 .ba-summary { background: var(--color-accent); }
+    #module-5 .ba-empty   { background: var(--color-border-light); color: var(--color-text-muted); }
+    #module-5 .ba-total {
+      margin-top: var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+
+    /* Pattern card example chip (reused look from module 3) */
+    #module-5 .pattern-example {
+      margin-top: var(--space-4);
+      padding-top: var(--space-3);
+      border-top: 1px dashed var(--color-border);
+      display: flex; flex-direction: column; gap: var(--space-1);
+    }
+    #module-5 .pattern-example-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+    }
+    #module-5 .pattern-example code {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--color-accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #module-5 .notebook-hero { grid-template-columns: 1fr; }
+      #module-5 .nb-arrow { transform: rotate(90deg); justify-self: center; }
+      #module-5 .ba-compare { grid-template-columns: 1fr; }
+    }
+  </style>
+</section>
